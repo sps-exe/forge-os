@@ -50,8 +50,12 @@ export default function ProfileSettingsPage() {
       toast.success('Profile updated')
       queryClient.invalidateQueries({ queryKey: queryKeys.me })
     },
-    onError: () => {
-      toast.error("Couldn't save profile")
+    onError: (err: unknown) => {
+      const msg =
+        err instanceof Error && err.message.includes('authenticated')
+          ? 'Session expired — please refresh the page.'
+          : 'API is warming up, please try again in 10 seconds.'
+      toast.error(msg)
     },
   })
 
