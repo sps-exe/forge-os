@@ -38,6 +38,7 @@ export default async function SignInPage({
     OAuthSignin: 'Could not start sign-in. Please try again.',
     OAuthCallback: 'Sign-in was cancelled or failed. Please try again.',
     OAuthCreateAccount: 'Could not create your account. Please try again.',
+    OAuthAccountNotLinked: 'An account already exists with this email address using a different sign-in method.',
     Callback: 'Something went wrong during sign-in. Please try again.',
     Default: 'An unexpected error occurred. Please try again.',
   }

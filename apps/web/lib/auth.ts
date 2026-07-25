@@ -14,10 +14,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.AUTH_GITHUB_ID ?? 'placeholder-github-id',
       clientSecret: process.env.AUTH_GITHUB_SECRET ?? 'placeholder-github-secret',
       authorization: { params: { scope: 'read:user user:email' } },
+      allowDangerousEmailAccountLinking: true,
     }),
     Google({
       clientId: process.env.AUTH_GOOGLE_ID ?? 'placeholder-google-id',
       clientSecret: process.env.AUTH_GOOGLE_SECRET ?? 'placeholder-google-secret',
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
   events: {
