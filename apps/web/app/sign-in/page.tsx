@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { Github, UserCheck } from 'lucide-react'
+import { Github, UserCheck, AlertCircle } from 'lucide-react'
 import { Button, Card, CardContent } from '@forge/ui'
 import { auth, signIn } from '@/lib/auth'
 import { Logo } from '@/components/logo'
@@ -32,7 +32,7 @@ function GoogleIcon() {
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string }>
+  searchParams: Promise<{ callbackUrl?: string; error?: string }>
 }) {
   let session = null
   try {
@@ -45,6 +45,20 @@ export default async function SignInPage({
 
   const resolvedSearchParams = await searchParams
   const redirectTo = resolvedSearchParams?.callbackUrl ?? '/dashboard'
+  const error = resolvedSearchParams?.error
+
+  const errorMessages: Record<string, string> = {
+    OAuthSignin: 'Could not start sign-in. Please try again.',
+    OAuthCallback: 'Sign-in was cancelled or failed. Please try again.',
+    OAuthCreateAccount: 'Could not create your account. Please try again.',
+    EmailCreateAccount: 'Could not create your account. Please try again.',
+    Callback: 'Something went wrong during sign-in. Please try again.',
+    Default: 'An unexpected error occurred. Please try again.',
+  }
+
+  const errorMessage = error
+    ? (errorMessages[error] ?? errorMessages.Default)
+    : null
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 px-4">
@@ -58,15 +72,17 @@ export default async function SignInPage({
             </p>
           </div>
 
+          {errorMessage && (
+            <div className="flex items-start gap-2 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-500">
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           <form
             action={async () => {
               'use server'
-              try {
-                await signIn('github', { redirectTo })
-              } catch (err) {
-                // If OAuth credentials aren't configured yet, redirect to dashboard demo
-                redirect('/dashboard')
-              }
+              await signIn('github', { redirectTo })
             }}
           >
             <Button className="w-full" variant="secondary" size="lg" type="submit">
@@ -77,18 +93,22 @@ export default async function SignInPage({
           <form
             action={async () => {
               'use server'
-              try {
-                await signIn('google', { redirectTo })
-              } catch (err) {
-                // If OAuth credentials aren't configured yet, redirect to dashboard demo
-                redirect('/dashboard')
-              }
+              await signIn('google', { redirectTo })
             }}
           >
             <Button className="w-full" variant="secondary" size="lg" type="submit">
               <GoogleIcon /> Continue with Google
             </Button>
           </form>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card text-muted-foreground px-2">or</span>
+            </div>
+          </div>
 
           <form
             action={async () => {
