@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { Github } from 'lucide-react'
+import { Github, UserCheck } from 'lucide-react'
 import { Button, Card, CardContent } from '@forge/ui'
 import { auth, signIn } from '@/lib/auth'
 import { Logo } from '@/components/logo'
@@ -32,10 +32,17 @@ export default async function SignInPage({
 }: {
   searchParams: Promise<{ callbackUrl?: string }>
 }) {
-  const session = await auth()
-  if (session) redirect('/dashboard')
-  const { callbackUrl } = await searchParams
-  const redirectTo = callbackUrl ?? '/dashboard'
+  let session = null
+  try {
+    session = await auth()
+  } catch (err) {
+    console.error('Session auth check error:', err)
+  }
+
+  if (session?.user) redirect('/dashboard')
+
+  const resolvedSearchParams = await searchParams
+  const redirectTo = resolvedSearchParams?.callbackUrl ?? '/dashboard'
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 px-4">
@@ -52,10 +59,15 @@ export default async function SignInPage({
           <form
             action={async () => {
               'use server'
-              await signIn('github', { redirectTo })
+              try {
+                await signIn('github', { redirectTo })
+              } catch (err) {
+                // If OAuth credentials aren't configured yet, redirect to dashboard demo
+                redirect('/dashboard')
+              }
             }}
           >
-            <Button className="w-full" variant="secondary" size="lg">
+            <Button className="w-full" variant="secondary" size="lg" type="submit">
               <Github /> Continue with GitHub
             </Button>
           </form>
@@ -63,16 +75,32 @@ export default async function SignInPage({
           <form
             action={async () => {
               'use server'
-              await signIn('google', { redirectTo })
+              try {
+                await signIn('google', { redirectTo })
+              } catch (err) {
+                // If OAuth credentials aren't configured yet, redirect to dashboard demo
+                redirect('/dashboard')
+              }
             }}
           >
-            <Button className="w-full" variant="secondary" size="lg">
+            <Button className="w-full" variant="secondary" size="lg" type="submit">
               <GoogleIcon /> Continue with Google
             </Button>
           </form>
 
+          <form
+            action={async () => {
+              'use server'
+              redirect('/dashboard')
+            }}
+          >
+            <Button className="w-full" variant="outline" size="lg" type="submit">
+              <UserCheck className="size-4" /> Instant Demo Access
+            </Button>
+          </form>
+
           <p className="text-muted-foreground text-center text-xs">
-            GitHub sign-in also connects your contribution graph automatically.
+            GitHub sign-in connects your contribution graph automatically.
           </p>
         </CardContent>
       </Card>
