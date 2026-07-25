@@ -15,7 +15,7 @@ import type {
   UserDto,
 } from '@forge/shared'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3101'
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? ''
 
 let cachedToken: { value: string; expiresAt: number } | null = null
 

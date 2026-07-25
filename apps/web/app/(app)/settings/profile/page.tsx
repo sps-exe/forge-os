@@ -51,10 +51,7 @@ export default function ProfileSettingsPage() {
       queryClient.invalidateQueries({ queryKey: queryKeys.me })
     },
     onError: (err: unknown) => {
-      const msg =
-        err instanceof Error && err.message.includes('authenticated')
-          ? 'Session expired — please refresh the page.'
-          : 'API is warming up, please try again in 10 seconds.'
+      const msg = err instanceof Error ? err.message : 'Failed to update profile'
       toast.error(msg)
     },
   })
