@@ -1,0 +1,32 @@
+{
+  "name": "forge",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Forge — the daily operating system for software engineers",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "db:generate": "pnpm --filter @forge/database db:generate",
+    "db:migrate": "pnpm --filter @forge/database db:migrate",
+    "db:push": "pnpm --filter @forge/database db:push",
+    "db:seed": "pnpm --filter @forge/database db:seed",
+    "db:studio": "pnpm --filter @forge/database db:studio"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
+    "turbo": "^2.3.3",
+    "typescript-eslint": "^8.19.0"
+  }
+}

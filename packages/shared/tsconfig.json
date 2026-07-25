@@ -1,0 +1,12 @@
+{
+  "extends": "@forge/config/tsconfig/base.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "noEmit": false
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.spec.ts"]
+}

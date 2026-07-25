@@ -1,0 +1,13 @@
+{
+  "name": "@forge/config",
+  "version": "0.1.0",
+  "private": true,
+  "files": [
+    "tsconfig",
+    "tailwind",
+    "eslint"
+  ],
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

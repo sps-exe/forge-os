@@ -1,0 +1,280 @@
+// Forge — Phase 1 schema
+// Auth.js adapter models + profiles + coding platform accounts/stats
+// + task/xp tables (schema-only in Phase 1, UI arrives in Phase 2).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth.js models ──────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts         Account[]
+  sessions         Session[]
+  profile          Profile?
+  codingAccounts   CodingAccount[]
+  dailyTasks       DailyTask[]
+  taskHistory      TaskHistory[]
+  xpEvents         XpEvent[]
+  userAchievements UserAchievement[]
+  notifications    Notification[]
+  userQuests       UserQuest[]
+  revisionItems    RevisionItem[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─── Profile ─────────────────────────────────────────────────
+
+model Profile {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  displayName String?
+  bio         String? @db.VarChar(280)
+  timezone    String  @default("UTC")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// ─── Coding platforms ────────────────────────────────────────
+
+enum Platform {
+  LEETCODE
+  CODEFORCES
+  GITHUB
+}
+
+model CodingAccount {
+  id        String   @id @default(cuid())
+  userId    String
+  platform  Platform
+  handle    String
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stats PlatformStats[]
+
+  @@unique([userId, platform])
+  @@index([userId])
+  @@map("coding_accounts")
+}
+
+model PlatformStats {
+  id              String   @id @default(cuid())
+  codingAccountId String
+  rating          Int?
+  maxRating       Int?
+  rank            String?
+  solvedCount     Int?
+  streak          Int?
+  /// Provider-specific extras: difficulty breakdown, calendars, languages…
+  details         Json     @default("{}")
+  capturedAt      DateTime @default(now())
+
+  codingAccount CodingAccount @relation(fields: [codingAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([codingAccountId, capturedAt])
+  @@index([codingAccountId, capturedAt(sort: Desc)])
+  @@map("platform_stats")
+}
+
+// ─── Tasks & XP (schema-only in Phase 1) ─────────────────────
+
+enum TaskType {
+  LEETCODE_DAILY
+  CODEFORCES_PRACTICE
+  GITHUB_CONTRIBUTION
+  CS_READING
+  REVISION
+  INTERVIEW_QUESTION
+  CUSTOM
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
+  SKIPPED
+}
+
+model DailyTask {
+  id        String     @id @default(cuid())
+  userId    String
+  type      TaskType
+  title     String
+  url       String?
+  status    TaskStatus @default(PENDING)
+  date      DateTime   @db.Date
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, date])
+  @@index([userId, date])
+  @@map("daily_tasks")
+}
+
+model TaskHistory {
+  id          String     @id @default(cuid())
+  userId      String
+  taskType    TaskType
+  status      TaskStatus
+  date        DateTime   @db.Date
+  completedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@map("task_history")
+}
+
+model XpEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  amount    Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("xp_events")
+}
+
+// ─── Achievement unlocks ──────────────────────────────────────
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@map("user_achievements")
+}
+
+// ─── Notifications ────────────────────────────────────────────
+
+enum NotificationType {
+  ACHIEVEMENT_UNLOCKED
+  STREAK_MILESTONE
+  CONTEST_REMINDER
+  QUEST_COMPLETED
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+// ─── Weekly Quests ─────────────────────────────────────────────
+
+model UserQuest {
+  id          String   @id @default(cuid())
+  userId      String
+  questId     String
+  weekKey     String
+  xpAwarded   Int      @default(0)
+  completedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questId, weekKey])
+  @@index([userId, weekKey])
+  @@map("user_quests")
+}
+
+// ─── Revision & Spaced Repetition ─────────────────────────────
+
+model RevisionItem {
+  id           String   @id @default(cuid())
+  userId       String
+  title        String
+  topic        String
+  difficulty   String   @default("Medium")
+  notes        String?
+  solutionUrl  String?
+  nextReviewAt DateTime @default(now())
+  intervalDays Int      @default(1)
+  reviewCount  Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, nextReviewAt])
+  @@map("revision_items")
+}
