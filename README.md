@@ -1,12 +1,22 @@
 # 🔥 Forge OS — The Daily Operating System for Software Engineers
 
-[![Live App](https://img.shields.io/badge/Live%20Product-Forge%20OS-orange?style=for-the-badge&logo=rocket)](https://github.com/sps-exe/forge-os)
-[![Built With Next.js](https://img.shields.io/badge/Frontend-Next.js%2015-black?style=for-the-badge&logo=nextdotjs)](https://nextjs.org)
-[![Powered By NestJS](https://img.shields.io/badge/Backend-NestJS%2011-red?style=for-the-badge&logo=nestjs)](https://nestjs.com)
-[![Database](https://img.shields.io/badge/Database-PostgreSQL%2016-blue?style=for-the-badge&logo=postgresql)](https://postgresql.org)
+[![Live Web Application](https://img.shields.io/badge/Web%20App-forge--os.vercel.app-orange?style=for-the-badge&logo=vercel)](https://forge-os.vercel.app)
+[![Live API Service](https://img.shields.io/badge/API%20Service-forge--api.onrender.com-red?style=for-the-badge&logo=render)](https://forge-api.onrender.com)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-sps--exe%2Fforge--os-blue?style=for-the-badge&logo=github)](https://github.com/sps-exe/forge-os)
+[![Build & Test CI](https://img.shields.io/badge/CI%2FCD-Passing-brightgreen?style=for-the-badge&logo=githubactions)](https://github.com/sps-exe/forge-os/actions)
 [![Security](https://img.shields.io/badge/Security-Hardened%20JWT%20%2B%20Headers-green?style=for-the-badge&logo=shield)](SECURITY.md)
 
 > **Forge OS** unifies competitive programming metrics, coding streak engines, spaced-repetition memory cards, weekly quests, and contest feeds into one daily habit-forming operating system for software engineers.
+
+---
+
+## 🔗 Live Product Deployments
+
+| Component | Production URL | Environment |
+|---|---|---|
+| 🌐 **Web Application** | [forge-os.vercel.app](https://forge-os.vercel.app) | Vercel Global Edge Network (Next.js 15 App Router) |
+| ⚡ **API Service** | [forge-api.onrender.com](https://forge-api.onrender.com) | Render Container Instances (NestJS 11 + PostgreSQL 16 + Redis 7) |
+| 📦 **GitHub Repository** | [github.com/sps-exe/forge-os](https://github.com/sps-exe/forge-os) | Source Code, CI Pipelines, & Product Blueprint |
 
 ---
 
