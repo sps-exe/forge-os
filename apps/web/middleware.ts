@@ -1,14 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
 /**
- * Edge middleware checks session cookie; in demo mode / development,
- * it passes through to allow interactive UI testing.
+ * Edge middleware can't load the Prisma adapter, so we gate on the
+ * Auth.js session cookie; the app layout does the real session check.
  */
 export function middleware(request: NextRequest) {
-  if (process.env.DEMO_MODE === 'true' || process.env.NODE_ENV !== 'production') {
-    return NextResponse.next()
-  }
-
   const sessionCookie =
     request.cookies.get('authjs.session-token') ??
     request.cookies.get('__Secure-authjs.session-token')
