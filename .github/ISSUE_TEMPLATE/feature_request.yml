@@ -1,0 +1,35 @@
+name: 🚀 Feature Request
+description: Suggest an idea or feature for Forge OS
+title: "[FEAT]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We love hearing new ideas to make Forge better for software engineers!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem or developer workflow bottleneck?
+      placeholder: I always forget to review past LeetCode mistakes...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution or feature you'd like to see added.
+      placeholder: Add an automated reminder on the dashboard...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions Considered
+      description: Describe any alternative solutions or workarounds you've considered.
+    validations:
+      required: false

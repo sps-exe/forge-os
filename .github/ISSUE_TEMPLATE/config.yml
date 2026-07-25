@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/forge/forge/discussions
+    about: Ask questions, share ideas, or discuss developer habits.
+  - name: 🛡️ Security Vulnerability Report
+    url: https://github.com/forge/forge/security/policy
+    about: Report security vulnerabilities responsibly.
