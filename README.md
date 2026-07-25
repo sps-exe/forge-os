@@ -1,6 +1,6 @@
 # 🔥 Forge OS — The Daily Operating System for Software Engineers
 
-[![Live Web Application](https://img.shields.io/badge/Live%20App-forge--app.vercel.app-orange?style=for-the-badge&logo=vercel)](https://forge-app.vercel.app)
+[![Live Web Application](https://img.shields.io/badge/Live%20App-forge--app--sps--exe.vercel.app-orange?style=for-the-badge&logo=vercel)](https://forge-app-sps-exe.vercel.app)
 [![Live API Service](https://img.shields.io/badge/API%20Service-forge--api.onrender.com-red?style=for-the-badge&logo=render)](https://forge-api.onrender.com)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-sps--exe%2Fforge--os-blue?style=for-the-badge&logo=github)](https://github.com/sps-exe/forge-os)
 [![Build & Test CI](https://img.shields.io/badge/CI%2FCD-Passing-brightgreen?style=for-the-badge&logo=githubactions)](https://github.com/sps-exe/forge-os/actions)
@@ -14,7 +14,7 @@
 
 | Component | Production URL | Environment |
 |---|---|---|
-| 🌐 **Web Application** | [forge-app.vercel.app](https://forge-app.vercel.app) | Vercel Global Edge Network (Next.js 15 App Router) |
+| 🌐 **Web Application** | [forge-app-sps-exe.vercel.app](https://forge-app-sps-exe.vercel.app) | Vercel Global Edge Network (Next.js 15 App Router) |
 | ⚡ **API Service** | [forge-api.onrender.com](https://forge-api.onrender.com) | Render Container Instances (NestJS 11 + PostgreSQL 16 + Redis 7) |
 | 📦 **GitHub Repository** | [github.com/sps-exe/forge-os](https://github.com/sps-exe/forge-os) | Source Code, CI Pipelines, & Product Blueprint |
 
