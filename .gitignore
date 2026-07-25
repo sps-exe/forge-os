@@ -28,3 +28,4 @@ test-results/
 .vercel
 .idea/
 .vscode/
+.env*

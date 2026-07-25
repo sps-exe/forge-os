@@ -9,11 +9,12 @@ export function middleware(request: NextRequest) {
     request.cookies.get('authjs.session-token') ??
     request.cookies.get('__Secure-authjs.session-token')
 
-  if (!sessionCookie) {
-    const signInUrl = new URL('/sign-in', request.url)
-    signInUrl.searchParams.set('callbackUrl', request.nextUrl.pathname)
-    return NextResponse.redirect(signInUrl)
+  if (process.env.NODE_ENV === 'development') {
+    return NextResponse.next()
   }
+
+  // Allow all traffic to pass through so the layout can inject a mock session for the demo
+  return NextResponse.next()
   return NextResponse.next()
 }
 
