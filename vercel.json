@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "npx pnpm --filter @forge/web build",
+  "buildCommand": "npx pnpm --filter @forge/database db:push --accept-data-loss && npx pnpm --filter @forge/web build",
   "installCommand": "npx pnpm install",
   "outputDirectory": "apps/web/.next"
 }
