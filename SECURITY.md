@@ -1,28 +1,11 @@
-# Security Policy
+# Forge OS Security & Data Protection Policy
 
-Forge takes security seriously. We encourage responsible disclosure of vulnerabilities to help us keep developer accounts and data safe.
+**CONFIDENTIAL & PROPRIETARY — FORGE OS INC.**
 
-## Supported Versions
+This repository contains proprietary software and intelligence systems. Security and secret confidentiality are strictly enforced.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
+## Security Practices
 
-## Reporting a Vulnerability
-
-If you discover a security vulnerability within Forge, please do **NOT** open a public issue. Instead, send an email to:
-
-**security@forge.dev**
-
-Please include:
-1. Type of vulnerability (e.g. CSRF, XSS, authentication bypass, secret exposure).
-2. Step-by-step instructions to reproduce the issue.
-3. Impact assessment and potential remediation suggestions.
-
-## Our Security Commitments
-
-- **Response Time**: We will acknowledge receipt of your vulnerability report within 24 hours.
-- **Triage**: We will assess severity and provide an estimated fix timeline within 48 hours.
-- **Resolution**: High and critical vulnerabilities will receive emergency patches released to main.
-
-Thank you for helping keep Forge secure!
+- **Zero Hardcoded Secrets**: All authentication keys, database credentials, and OAuth tokens are injected via environment variables (`.env`).
+- **Data Protection**: Strict user isolation via Prisma transactions and JWT token verification.
+- **Header Hardening**: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `HSTS`, `Referrer-Policy`, and `Permissions-Policy` headers enabled across all APIs and web surfaces.
