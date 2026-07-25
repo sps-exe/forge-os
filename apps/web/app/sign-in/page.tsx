@@ -4,6 +4,8 @@ import { Button, Card, CardContent } from '@forge/ui'
 import { auth, signIn } from '@/lib/auth'
 import { Logo } from '@/components/logo'
 
+export const dynamic = 'force-dynamic'
+
 function GoogleIcon() {
   return (
     <svg viewBox="0 0 24 24" className="size-4" aria-hidden>
