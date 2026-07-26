@@ -6,36 +6,56 @@ export const dynamic = 'force-dynamic'
 
 // ── LeetCode ─────────────────────────────────────────────────────────────────
 
-async function fetchLeetCodeStats(username: string) {
-  // Strategy 1: alfa-leetcode-api (open proxy, no CSRF needed)
+function buildStatsShape(data: {
+  rating: number | null
+  maxRating: number | null
+  solvedCount: number
+  rank: string | null
+  streak: number | null
+  details: Record<string, unknown>
+}) { return data }
+
+async function fetchAlfa(username: string) {
+  const res = await fetch(
+    `https://alfa-leetcode-api.onrender.com/userProfile/${encodeURIComponent(username)}`,
+    {
+      headers: { 'User-Agent': 'forge-app/1.0' },
+      signal: AbortSignal.timeout(8000),
+      cache: 'no-store',
+    }
+  )
+  if (!res.ok) return null
+  const data = await res.json()
+  if (!data || data.errors) return null
+  return {
+    rating: null,
+    maxRating: null,
+    solvedCount: data.totalSolved ?? 0,
+    rank: data.ranking ? `#${Number(data.ranking).toLocaleString()}` : null,
+    streak: null,
+    details: {
+      easySolved: data.easySolved ?? 0,
+      easyTotal: data.totalEasy ?? 0,
+      mediumSolved: data.mediumSolved ?? 0,
+      mediumTotal: data.totalMedium ?? 0,
+      hardSolved: data.hardSolved ?? 0,
+      hardTotal: data.totalHard ?? 0,
+    },
+  }
+}
+
+async function fetchLeetCodeStats(username: string): Promise<{ stats: ReturnType<typeof buildStatsShape>; resolvedHandle: string } | null> {
+  // Strategy 1: alfa-leetcode-api — try original handle, then hyphen↔underscore variants
   try {
-    const res = await fetch(
-      `https://alfa-leetcode-api.onrender.com/userProfile/${encodeURIComponent(username)}`,
-      {
-        headers: { 'User-Agent': 'forge-app/1.0' },
-        signal: AbortSignal.timeout(8000),
-        cache: 'no-store'
-      }
-    )
-    if (res.ok) {
-      const data = await res.json()
-      if (data && !data.errors) {
-        return {
-          rating: null,
-          maxRating: null,
-          solvedCount: data.totalSolved ?? 0,
-          rank: data.ranking ? `#${Number(data.ranking).toLocaleString()}` : null,
-          streak: null,
-          details: {
-            easySolved: data.easySolved ?? 0,
-            easyTotal: data.totalEasy ?? 0,
-            mediumSolved: data.mediumSolved ?? 0,
-            mediumTotal: data.totalMedium ?? 0,
-            hardSolved: data.hardSolved ?? 0,
-            hardTotal: data.totalHard ?? 0,
-          },
-        }
-      }
+    const candidates = Array.from(new Set([
+      username,
+      username.replaceAll('-', '_'),
+      username.replaceAll('_', '-'),
+    ]))
+
+    for (const candidate of candidates) {
+      const result = await fetchAlfa(candidate)
+      if (result) return { stats: result, resolvedHandle: candidate }
     }
   } catch (e) {
     console.warn('[LeetCode] alfa-leetcode-api failed:', e)
@@ -200,11 +220,24 @@ export async function GET(
       )
     }
 
-    let stats = null
+    let finalStats = null
+    let displayHandle = account.handle
+
     if (platformStr === 'LEETCODE') {
-      stats = await fetchLeetCodeStats(account.handle)
+      const result = await fetchLeetCodeStats(account.handle)
+      if (result) {
+        finalStats = result.stats
+        displayHandle = result.resolvedHandle
+        // Self-heal: if we found a different (correct) variant, silently fix the DB
+        if (result.resolvedHandle !== account.handle) {
+          prisma.codingAccount.update({
+            where: { userId_platform: { userId: session.user.id, platform: 'LEETCODE' } },
+            data: { handle: result.resolvedHandle },
+          }).catch((e: unknown) => console.warn('[LeetCode] self-heal DB update failed:', e))
+        }
+      }
     } else if (platformStr === 'CODEFORCES') {
-      stats = await fetchCodeforcesStats(account.handle)
+      finalStats = await fetchCodeforcesStats(account.handle)
     } else {
       return NextResponse.json(
         { success: false, error: { code: 'UNSUPPORTED', message: `GitHub stats not available via this route` } },
@@ -212,14 +245,14 @@ export async function GET(
       )
     }
 
-    if (!stats) {
+    if (!finalStats) {
       return NextResponse.json(
-        { success: false, error: { code: 'FETCH_FAILED', message: `Could not fetch stats for ${account.handle} — LeetCode may be temporarily blocking external requests` } },
+        { success: false, error: { code: 'FETCH_FAILED', message: `Could not fetch stats for ${account.handle} — the handle may not exist or the platform API is temporarily unavailable` } },
         { status: 502 }
       )
     }
 
-    return NextResponse.json({ success: true, data: { platform: platformStr, handle: account.handle, ...stats, capturedAt: new Date().toISOString() } })
+    return NextResponse.json({ success: true, data: { platform: platformStr, handle: displayHandle, ...finalStats, capturedAt: new Date().toISOString() } })
   } catch (err) {
     console.error('Error fetching platform stats:', err)
     return NextResponse.json(
