@@ -16,6 +16,27 @@ export async function GET() {
       where: { userId: session.user.id },
     })
 
+    // Check if user has a linked GitHub account in Auth.js
+    const githubAccount = await prisma.account.findFirst({
+      where: { userId: session.user.id, provider: 'github' },
+    })
+
+    const hasGithub = accounts.some((a) => a.platform === 'GITHUB')
+    if (githubAccount && !hasGithub) {
+      const handleName = session.user.name?.toLowerCase().replace(/\s+/g, '') || 'connected'
+      const newGithub = await prisma.codingAccount.upsert({
+        where: { userId_platform: { userId: session.user.id, platform: 'GITHUB' } },
+        update: {},
+        create: {
+          userId: session.user.id,
+          platform: 'GITHUB',
+          handle: handleName,
+          verified: true,
+        },
+      })
+      accounts.push(newGithub)
+    }
+
     return NextResponse.json({
       success: true,
       data: accounts.map((a) => ({

@@ -44,8 +44,7 @@ const PLATFORMS: {
     title: 'GitHub',
     icon: GitBranch,
     accentClass: 'text-platform-github',
-    placeholder: 'connected via sign-in',
-    managed: true,
+    placeholder: 'your-github-username',
   },
 ]
 
