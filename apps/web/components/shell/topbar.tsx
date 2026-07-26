@@ -55,7 +55,7 @@ export function Topbar({ user }: TopbarProps) {
 
       <div className="ml-auto flex items-center gap-2">
         {me && (
-          <Link href="/profile" className="hidden sm:block">
+          <Link href="/settings/profile" className="hidden sm:block">
             <Badge variant="outline" className="gap-1.5 py-1 px-2.5 hover:bg-accent transition-colors font-medium">
               <Zap className="size-3.5 text-warning fill-warning/20" />
               <span>Lvl {me.level}</span>
@@ -99,20 +99,12 @@ export function Topbar({ user }: TopbarProps) {
 
               <div className="py-1">
                 <Link
-                  href="/profile"
-                  onClick={() => setDropdownOpen(false)}
-                  className="hover:bg-accent flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors"
-                >
-                  <User className="size-4 text-muted-foreground" />
-                  <span>My Profile</span>
-                </Link>
-                <Link
                   href="/settings/profile"
                   onClick={() => setDropdownOpen(false)}
                   className="hover:bg-accent flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors"
                 >
-                  <Settings className="size-4 text-muted-foreground" />
-                  <span>Profile Settings</span>
+                  <User className="size-4 text-muted-foreground" />
+                  <span>Profile</span>
                 </Link>
                 <Link
                   href="/settings/connections"
