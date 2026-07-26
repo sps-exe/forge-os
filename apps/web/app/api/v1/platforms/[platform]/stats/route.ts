@@ -183,15 +183,17 @@ async function fetchGithubStats(username: string) {
         level: Math.min(4, Math.max(0, parseInt(c.intensity || '0', 10))),
       }))
 
-      // Calculate streak
+      // Calculate streak (destructure to satisfy noUncheckedIndexedAccess)
       const sorted = [...rawCalendar].sort((a, b) => b.date.localeCompare(a.date))
       let current = 0
       for (let i = 0; i < sorted.length; i++) {
-        if (sorted[i].count > 0) {
+        const day = sorted[i]
+        if (!day) break
+        if (day.count > 0) {
           current++
         } else {
-          // Allow today to be 0 if yesterday had contributions
-          if (i === 0 && sorted[i].date === todayStr) continue
+          // Allow today to be 0 (streak still live from yesterday)
+          if (i === 0 && day.date === todayStr) continue
           break
         }
       }
