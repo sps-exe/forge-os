@@ -31,7 +31,8 @@ export function usePlatformStats(platform: 'LEETCODE' | 'CODEFORCES' | 'GITHUB',
     queryKey: queryKeys.stats(platform),
     queryFn: () => api.platformStats(platform),
     enabled,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000, // 30 seconds — refresh often so wrong handles get corrected fast
+    gcTime: 0,            // don't keep stale data in memory at all
     retry: (failureCount, error) => {
       // Don't hammer the API when the account simply isn't connected.
       if (error instanceof ApiClientError && error.code === 'NOT_FOUND') return false
