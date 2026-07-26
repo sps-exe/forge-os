@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { Command } from 'cmdk'
-import { LogOut, Search } from 'lucide-react'
+import { LogOut, Search, Settings, User } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { NAV_ITEMS } from './sidebar'
 import { useUiStore } from '@/lib/stores/ui'
@@ -59,6 +59,32 @@ export function CommandPalette() {
             </Command.Item>
           ))}
         </Command.Group>
+        <Command.Group
+          heading="Settings"
+          className="text-muted-foreground text-xs [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5"
+        >
+          <Command.Item
+            onSelect={() => {
+              router.push('/settings/profile')
+              setCommandPaletteOpen(false)
+            }}
+            className="text-foreground data-[selected=true]:bg-accent flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm"
+          >
+            <User className="size-4" />
+            Profile Settings
+          </Command.Item>
+          <Command.Item
+            onSelect={() => {
+              router.push('/settings/connections')
+              setCommandPaletteOpen(false)
+            }}
+            className="text-foreground data-[selected=true]:bg-accent flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm"
+          >
+            <Settings className="size-4" />
+            Platform Connections
+          </Command.Item>
+        </Command.Group>
+
         <Command.Group
           heading="Account"
           className="text-muted-foreground text-xs [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5"

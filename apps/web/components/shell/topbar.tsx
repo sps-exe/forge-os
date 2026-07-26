@@ -3,10 +3,11 @@
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Menu, Search, User, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { Menu, Search, User, Settings, LogOut, ChevronDown, Zap } from 'lucide-react'
 import { signOut } from 'next-auth/react'
-import { Button } from '@forge/ui'
+import { Badge, Button } from '@forge/ui'
 import { useUiStore } from '@/lib/stores/ui'
+import { useMe } from '@/lib/api/hooks'
 import { NotificationBell } from './notification-bell'
 
 interface TopbarProps {
@@ -15,6 +16,7 @@ interface TopbarProps {
 
 export function Topbar({ user }: TopbarProps) {
   const { setSidebarOpen, setCommandPaletteOpen } = useUiStore()
+  const { data: me } = useMe()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -52,6 +54,16 @@ export function Topbar({ user }: TopbarProps) {
       </button>
 
       <div className="ml-auto flex items-center gap-2">
+        {me && (
+          <Link href="/profile" className="hidden sm:block">
+            <Badge variant="outline" className="gap-1.5 py-1 px-2.5 hover:bg-accent transition-colors font-medium">
+              <Zap className="size-3.5 text-warning fill-warning/20" />
+              <span>Lvl {me.level}</span>
+              <span className="text-muted-foreground text-[10px] font-mono">({me.totalXp} XP)</span>
+            </Badge>
+          </Link>
+        )}
+
         <NotificationBell />
 
         <div className="relative" ref={menuRef}>
