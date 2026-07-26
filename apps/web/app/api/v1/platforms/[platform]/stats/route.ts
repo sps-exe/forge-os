@@ -3,51 +3,109 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@forge/database'
 
 async function fetchLeetCodeStats(username: string) {
-  const query = `
-    query getUserProfile($username: String!) {
-      matchedUser(username: $username) {
-        submitStats {
-          acSubmissionNum {
-            difficulty
-            count
+  // Strategy 1: Direct LeetCode GraphQL with Browser Headers
+  try {
+    const query = `
+      query getUserProfile($username: String!) {
+        matchedUser(username: $username) {
+          submitStats {
+            acSubmissionNum {
+              difficulty
+              count
+            }
+          }
+          profile {
+            ranking
+          }
+          userContestRanking {
+            rating
+            attendedContestsCount
           }
         }
-        profile {
-          ranking
-        }
-        userContestRanking {
-          rating
-          attendedContestsCount
+      }
+    `
+    const res = await fetch('https://leetcode.com/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        Referer: 'https://leetcode.com',
+        Origin: 'https://leetcode.com',
+      },
+      body: JSON.stringify({ query, variables: { username } }),
+      next: { revalidate: 300 },
+    })
+
+    if (res.ok) {
+      const json = await res.json()
+      const user = json?.data?.matchedUser
+      if (user) {
+        const solvedList: { difficulty: string; count: number }[] =
+          user.submitStats?.acSubmissionNum ?? []
+        const total =
+          solvedList.find((d: { difficulty: string }) => d.difficulty === 'All')?.count ?? 0
+        const easy =
+          solvedList.find((d: { difficulty: string }) => d.difficulty === 'Easy')?.count ?? 0
+        const medium =
+          solvedList.find((d: { difficulty: string }) => d.difficulty === 'Medium')?.count ?? 0
+        const hard =
+          solvedList.find((d: { difficulty: string }) => d.difficulty === 'Hard')?.count ?? 0
+        const rating = Math.round(user.userContestRanking?.rating ?? 0) || null
+        const ranking = user.profile?.ranking ?? null
+
+        return {
+          rating,
+          maxRating: rating,
+          solvedCount: total,
+          rank: ranking ? `#${ranking.toLocaleString()}` : null,
+          streak: null,
+          details: { easySolved: easy, mediumSolved: medium, hardSolved: hard },
         }
       }
     }
-  `
-  const res = await fetch('https://leetcode.com/graphql', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, variables: { username } }),
-    next: { revalidate: 300 },
-  })
-  if (!res.ok) return null
-  const json = await res.json()
-  const user = json?.data?.matchedUser
-  if (!user) return null
+  } catch (e) {
+    console.warn('LeetCode GraphQL fetch failed, trying fallback API:', e)
+  }
 
-  const solvedList: { difficulty: string; count: number }[] = user.submitStats?.acSubmissionNum ?? []
-  const total = solvedList.find((d: { difficulty: string }) => d.difficulty === 'All')?.count ?? 0
-  const easy = solvedList.find((d: { difficulty: string }) => d.difficulty === 'Easy')?.count ?? 0
-  const medium = solvedList.find((d: { difficulty: string }) => d.difficulty === 'Medium')?.count ?? 0
-  const hard = solvedList.find((d: { difficulty: string }) => d.difficulty === 'Hard')?.count ?? 0
-  const rating = Math.round(user.userContestRanking?.rating ?? 0) || null
-  const ranking = user.profile?.ranking ?? null
+  // Strategy 2: Fallback to leetcode-stats-api
+  try {
+    const res = await fetch(`https://leetcode-stats-api.herokuapp.com/${encodeURIComponent(username)}`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+      },
+      next: { revalidate: 300 },
+    })
 
+    if (res.ok) {
+      const data = await res.json()
+      if (data.status === 'success') {
+        return {
+          rating: null,
+          maxRating: null,
+          solvedCount: data.totalSolved ?? 0,
+          rank: data.ranking ? `#${data.ranking.toLocaleString()}` : null,
+          streak: null,
+          details: {
+            easySolved: data.easySolved ?? 0,
+            mediumSolved: data.mediumSolved ?? 0,
+            hardSolved: data.hardSolved ?? 0,
+          },
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('LeetCode stats API fallback failed:', e)
+  }
+
+  // Strategy 3: Graceful fallback object so UI never crashes or shows 502
   return {
-    rating,
-    maxRating: rating,
-    solvedCount: total,
-    rank: ranking ? `#${ranking.toLocaleString()}` : null,
+    rating: null,
+    maxRating: null,
+    solvedCount: 0,
+    rank: null,
     streak: null,
-    details: { easySolved: easy, mediumSolved: medium, hardSolved: hard },
+    details: { easySolved: 0, mediumSolved: 0, hardSolved: 0 },
   }
 }
 
