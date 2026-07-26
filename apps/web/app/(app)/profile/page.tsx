@@ -55,7 +55,7 @@ export default function ProfilePage() {
   const xpInCurrentLevel = totalXp % 1000
   const xpProgress = Math.round((xpInCurrentLevel / 1000) * 100)
 
-  const earnedBadges = achievements?.achievements.filter((a) => a.earned) ?? []
+  const earnedBadges = achievements?.achievements?.filter((a) => a.earned) ?? []
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
