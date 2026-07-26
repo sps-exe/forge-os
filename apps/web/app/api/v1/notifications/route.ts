@@ -17,9 +17,12 @@ export async function GET() {
     take: 20,
   })
 
+  const unreadCount = notifications.filter((n) => !n.read).length
+
   return NextResponse.json({
     success: true,
     data: {
+      unreadCount,
       notifications: notifications.map((n) => ({
         id: n.id,
         type: n.type,

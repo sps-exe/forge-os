@@ -2,6 +2,53 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@forge/database'
 
+function toRevisionOverview(items: Array<{
+  id: string
+  title: string
+  topic: string
+  difficulty: string
+  notes: string | null
+  solutionUrl: string | null
+  nextReviewAt: Date
+  intervalDays: number
+  reviewCount: number
+}>) {
+  const now = new Date()
+  const dueItems = items
+    .filter((i) => i.nextReviewAt <= now)
+    .map((i) => ({
+      id: i.id,
+      title: i.title,
+      topic: i.topic,
+      difficulty: i.difficulty,
+      notes: i.notes,
+      solutionUrl: i.solutionUrl,
+      nextReviewAt: i.nextReviewAt.toISOString(),
+      intervalDays: i.intervalDays,
+      reviewCount: i.reviewCount,
+    }))
+  const upcomingItems = items
+    .filter((i) => i.nextReviewAt > now)
+    .map((i) => ({
+      id: i.id,
+      title: i.title,
+      topic: i.topic,
+      difficulty: i.difficulty,
+      notes: i.notes,
+      solutionUrl: i.solutionUrl,
+      nextReviewAt: i.nextReviewAt.toISOString(),
+      intervalDays: i.intervalDays,
+      reviewCount: i.reviewCount,
+    }))
+
+  return {
+    dueCount: dueItems.length,
+    totalCount: items.length,
+    dueItems,
+    upcomingItems,
+  }
+}
+
 export async function GET() {
   const session = await auth()
   if (!session?.user?.id) {
@@ -11,27 +58,23 @@ export async function GET() {
     )
   }
 
-  const items = await prisma.revisionItem.findMany({
-    where: { userId: session.user.id },
-    orderBy: { nextReviewAt: 'asc' },
-  })
+  try {
+    const items = await prisma.revisionItem.findMany({
+      where: { userId: session.user.id },
+      orderBy: { nextReviewAt: 'asc' },
+    })
 
-  return NextResponse.json({
-    success: true,
-    data: {
-      items: items.map((item) => ({
-        id: item.id,
-        title: item.title,
-        topic: item.topic,
-        difficulty: item.difficulty,
-        notes: item.notes,
-        solutionUrl: item.solutionUrl,
-        nextReviewAt: item.nextReviewAt.toISOString(),
-        intervalDays: item.intervalDays,
-        reviewCount: item.reviewCount,
-      })),
-    },
-  })
+    return NextResponse.json({
+      success: true,
+      data: toRevisionOverview(items),
+    })
+  } catch (err) {
+    console.error('Error fetching revision items:', err)
+    return NextResponse.json(
+      { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch revision items' } },
+      { status: 500 }
+    )
+  }
 }
 
 export async function POST(req: Request) {
@@ -54,19 +97,25 @@ export async function POST(req: Request) {
       )
     }
 
-    const item = await prisma.revisionItem.create({
+    await prisma.revisionItem.create({
       data: {
         userId: session.user.id,
         title,
         topic,
         difficulty: difficulty ?? 'Medium',
-        notes,
-        solutionUrl,
-        nextReviewAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Review tomorrow
+        notes: notes || null,
+        solutionUrl: solutionUrl || null,
+        nextReviewAt: new Date(), // Due immediately so user can review right away
       },
     })
 
-    return NextResponse.json({ success: true, data: item })
+    // Return the updated overview so the UI refreshes correctly
+    const allItems = await prisma.revisionItem.findMany({
+      where: { userId: session.user.id },
+      orderBy: { nextReviewAt: 'asc' },
+    })
+
+    return NextResponse.json({ success: true, data: toRevisionOverview(allItems) })
   } catch (err) {
     console.error('Error creating revision item:', err)
     return NextResponse.json(
