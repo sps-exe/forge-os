@@ -49,7 +49,7 @@ const PLATFORMS: {
 ]
 
 function ConnectionRow({ config }: { config: (typeof PLATFORMS)[number] }) {
-  const { data: accounts } = useAccounts()
+  const { data: accounts, isLoading } = useAccounts()
   const connect = useConnectAccount()
   const disconnect = useDisconnectAccount()
   const [handle, setHandle] = useState('')
@@ -85,7 +85,9 @@ function ConnectionRow({ config }: { config: (typeof PLATFORMS)[number] }) {
         <Icon className={`size-5 ${config.accentClass}`} />
         <div>
           <p className="font-medium">{config.title}</p>
-          {account ? (
+          {isLoading ? (
+            <p className="text-muted-foreground text-xs animate-pulse">Loading status...</p>
+          ) : account ? (
             <p className="text-muted-foreground text-xs">@{account.handle}</p>
           ) : (
             <p className="text-muted-foreground text-xs">Not connected</p>
@@ -93,7 +95,9 @@ function ConnectionRow({ config }: { config: (typeof PLATFORMS)[number] }) {
         </div>
       </div>
 
-      {account ? (
+      {isLoading ? (
+        <div className="h-9 w-24 bg-muted animate-pulse rounded-md" />
+      ) : account ? (
         <div className="flex items-center gap-2">
           <Badge variant="success">
             <Check className="mr-1 size-3" /> Connected

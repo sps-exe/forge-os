@@ -19,7 +19,8 @@ export default function GithubPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <PlatformGate platform="GITHUB" title="GitHub">
         {(stats) => {
-          const d = stats.details as unknown as GithubDetails
+          const d = (stats.details ?? {}) as unknown as Partial<GithubDetails>
+          const topLanguages = Array.isArray(d.topLanguages) ? d.topLanguages : []
           return (
             <>
               <div className="flex flex-wrap items-center justify-between gap-4">
@@ -35,21 +36,21 @@ export default function GithubPage() {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                   label="Contributions this year"
-                  value={d.contributionsThisYear.toLocaleString()}
+                  value={(d.contributionsThisYear ?? 0).toLocaleString()}
                   accent="github"
                   icon={<GitBranch />}
                 />
                 <StatCard
                   label="Today"
-                  value={d.contributionsToday}
-                  accent={d.contributionsToday > 0 ? 'success' : 'default'}
+                  value={d.contributionsToday ?? 0}
+                  accent={(d.contributionsToday ?? 0) > 0 ? 'success' : 'default'}
                 />
                 <StatCard
                   label="Total stars"
-                  value={d.totalStars.toLocaleString()}
+                  value={(d.totalStars ?? 0).toLocaleString()}
                   icon={<Star />}
                 />
-                <StatCard label="Followers" value={d.followers.toLocaleString()} icon={<Users />} />
+                <StatCard label="Followers" value={(d.followers ?? 0).toLocaleString()} icon={<Users />} />
               </div>
 
               <Card>
@@ -57,17 +58,17 @@ export default function GithubPage() {
                   <CardTitle>Contribution activity</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ContributionHeatmap days={d.contributionCalendar} />
+                  <ContributionHeatmap days={d.contributionCalendar ?? []} />
                 </CardContent>
               </Card>
 
-              {d.topLanguages.length > 0 && (
+              {topLanguages.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Top languages</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {d.topLanguages.map((lang) => (
+                    {topLanguages.map((lang) => (
                       <div key={lang.name}>
                         <div className="mb-1 flex justify-between text-sm">
                           <span className="font-medium">{lang.name}</span>

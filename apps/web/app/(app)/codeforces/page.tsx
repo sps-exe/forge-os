@@ -19,14 +19,21 @@ export default function CodeforcesPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <PlatformGate platform="CODEFORCES" title="Codeforces">
         {(stats) => {
-          const d = stats.details as unknown as CodeforcesDetails
-          const chartData = d.ratingHistory.map((r) => ({
-            label: new Date(r.at).toLocaleDateString(undefined, {
-              month: 'short',
-              year: '2-digit',
-            }),
-            rating: r.newRating,
-          }))
+          const d = (stats.details ?? {}) as unknown as Partial<CodeforcesDetails>
+          const history = Array.isArray(d?.ratingHistory) ? d.ratingHistory : []
+          const chartData = history.map((r) => {
+            const rawAt = r.at
+            const dateObj = typeof rawAt === 'number' ? new Date(rawAt * 1000) : new Date(rawAt)
+            return {
+              label: isNaN(dateObj.getTime())
+                ? '—'
+                : dateObj.toLocaleDateString(undefined, {
+                    month: 'short',
+                    year: '2-digit',
+                  }),
+              rating: r.newRating ?? 0,
+            }
+          })
           return (
             <>
               <PageHeader

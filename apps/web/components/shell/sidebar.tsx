@@ -42,7 +42,7 @@ export const SETTINGS_ITEMS = [
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
 
-  const isActive = (href: string) => pathname.startsWith(href.split('/').slice(0, 2).join('/'))
+  const isActive = (href: string) => pathname?.startsWith(href.split('/').slice(0, 2).join('/')) ?? false
 
   return (
     <nav className="flex flex-col gap-1 px-3">

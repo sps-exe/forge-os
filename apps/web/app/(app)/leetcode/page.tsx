@@ -38,7 +38,7 @@ export default function LeetCodePage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <PlatformGate platform="LEETCODE" title="LeetCode">
         {(stats) => {
-          const d = stats.details as unknown as LeetCodeDetails
+          const d = (stats.details ?? {}) as unknown as Partial<LeetCodeDetails>
           const totalSolved = stats.solvedCount ?? 0
           return (
             <>
@@ -62,20 +62,20 @@ export default function LeetCodePage() {
                 <CardContent className="space-y-4">
                   <DifficultyBar
                     label="Easy"
-                    solved={d.easySolved}
-                    total={d.easyTotal}
+                    solved={d.easySolved ?? 0}
+                    total={d.easyTotal ?? 0}
                     color="bg-success"
                   />
                   <DifficultyBar
                     label="Medium"
-                    solved={d.mediumSolved}
-                    total={d.mediumTotal}
+                    solved={d.mediumSolved ?? 0}
+                    total={d.mediumTotal ?? 0}
                     color="bg-platform-leetcode"
                   />
                   <DifficultyBar
                     label="Hard"
-                    solved={d.hardSolved}
-                    total={d.hardTotal}
+                    solved={d.hardSolved ?? 0}
+                    total={d.hardTotal ?? 0}
                     color="bg-destructive"
                   />
                 </CardContent>
