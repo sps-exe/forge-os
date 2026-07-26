@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@forge/database'
 
+export const dynamic = 'force-dynamic'
+
 // ── LeetCode ─────────────────────────────────────────────────────────────────
 
 async function fetchLeetCodeStats(username: string) {
@@ -12,6 +14,7 @@ async function fetchLeetCodeStats(username: string) {
       {
         headers: { 'User-Agent': 'forge-app/1.0' },
         signal: AbortSignal.timeout(8000),
+        cache: 'no-store'
       }
     )
     if (res.ok) {
