@@ -104,6 +104,17 @@ export function useUpdateTaskStatus() {
   })
 }
 
+export function useCreateTask() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { title: string; url?: string; type?: string }) => api.createTask(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.todayTasks })
+      queryClient.invalidateQueries({ queryKey: queryKeys.taskSummary })
+    },
+  })
+}
+
 export function useAchievements() {
   return useQuery({
     queryKey: queryKeys.achievements,

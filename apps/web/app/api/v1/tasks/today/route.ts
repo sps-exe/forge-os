@@ -111,3 +111,48 @@ export async function PATCH(req: Request) {
     )
   }
 }
+
+export async function POST(req: Request) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { success: false, error: { code: 'UNAUTHORIZED', message: 'Not authenticated' } },
+      { status: 401 }
+    )
+  }
+
+  try {
+    const body = await req.json()
+    const { title, url, type } = body
+
+    if (!title || typeof title !== 'string' || !title.trim()) {
+      return NextResponse.json(
+        { success: false, error: { code: 'BAD_REQUEST', message: 'Title is required' } },
+        { status: 400 }
+      )
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0] ?? ''
+    const todayDate = new Date(`${todayStr}T00:00:00.000Z`)
+
+    const task = await prisma.dailyTask.create({
+      data: {
+        userId: session.user.id,
+        title: title.trim(),
+        url: url?.trim() || null,
+        type: type || 'CUSTOM',
+        status: 'PENDING',
+        date: todayDate,
+      },
+    })
+
+    return NextResponse.json({ success: true, data: task })
+  } catch (err) {
+    console.error('Error creating task:', err)
+    return NextResponse.json(
+      { success: false, error: { code: 'INTERNAL_ERROR', message: 'Failed to create task' } },
+      { status: 500 }
+    )
+  }
+}
+

@@ -87,9 +87,14 @@ export const api = {
   generateTodayTasks: () =>
     request<DailyTasksOverview>('/tasks/today/generate', { method: 'POST' }),
   updateTaskStatus: (taskId: string, status: TaskStatus) =>
-    request<DailyTasksOverview>(`/tasks/${taskId}/status`, {
+    request<DailyTasksOverview>('/tasks/today', {
       method: 'PATCH',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ taskId, status }),
+    }),
+  createTask: (input: { title: string; url?: string; type?: string }) =>
+    request('/tasks/today', {
+      method: 'POST',
+      body: JSON.stringify(input),
     }),
 
   achievements: () => request<AchievementsOverview>('/achievements'),

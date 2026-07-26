@@ -18,6 +18,7 @@ import { ContestsCard } from '@/components/dashboard/contests-card'
 import { DailyTasksCard } from '@/components/dashboard/daily-tasks-card'
 import { AchievementsCard } from '@/components/dashboard/achievements-card'
 import { WeeklyQuestsCard } from '@/components/dashboard/weekly-quests-card'
+import { OnboardingBanner } from '@/components/dashboard/onboarding-banner'
 
 const QUOTES = [
   'Consistency beats intensity.',
@@ -66,6 +67,8 @@ export default function DashboardPage() {
           size="sm"
         />
       </div>
+
+      <OnboardingBanner />
 
       {/* Top stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

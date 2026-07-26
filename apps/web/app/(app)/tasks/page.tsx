@@ -1,15 +1,18 @@
 'use client'
 
+import { useState } from 'react'
 import {
   CheckCircle2,
   Circle,
   ExternalLink,
   Flame,
   GitCommitHorizontal,
+  Plus,
   RotateCcw,
   SkipForward,
   Trophy,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   Badge,
   Button,
@@ -18,9 +21,11 @@ import {
   CardHeader,
   CardTitle,
   EmptyState,
+  Input,
   Skeleton,
 } from '@forge/ui'
 import {
+  useCreateTask,
   useGenerateTodayTasks,
   useTaskHistory,
   useTaskSummary,
@@ -45,6 +50,31 @@ export default function TasksPage() {
   const { data: history } = useTaskHistory()
   const generate = useGenerateTodayTasks()
   const updateStatus = useUpdateTaskStatus()
+  const createTask = useCreateTask()
+
+  const [showTaskForm, setShowTaskForm] = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [newUrl, setNewUrl] = useState('')
+
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newTitle.trim()) return
+
+    try {
+      await createTask.mutateAsync({
+        title: newTitle.trim(),
+        url: newUrl.trim() || undefined,
+        type: 'CUSTOM',
+      })
+      toast.success('Task added to today!')
+      setNewTitle('')
+      setNewUrl('')
+      setShowTaskForm(false)
+    } catch {
+      toast.error('Failed to create task.')
+    }
+  }
+
   const progress =
     data && data.totalCount > 0 ? Math.round((data.completedCount / data.totalCount) * 100) : 0
 
@@ -60,10 +90,16 @@ export default function TasksPage() {
             </p>
           </div>
         </div>
-        <Button variant="outline" onClick={() => generate.mutate()} disabled={generate.isPending}>
-          <RotateCcw />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setShowTaskForm(!showTaskForm)} className="gap-1.5">
+            <Plus className="size-4" />
+            Add Task
+          </Button>
+          <Button variant="outline" onClick={() => generate.mutate()} disabled={generate.isPending}>
+            <RotateCcw className="size-4" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -97,6 +133,48 @@ export default function TasksPage() {
           </CardContent>
         </Card>
       </div>
+
+      {showTaskForm && (
+        <Card className="border-primary/40 bg-accent/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Add Custom Daily Task</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreateTask} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <label htmlFor="taskTitle" className="text-xs font-medium">Task Title</label>
+                  <Input
+                    id="taskTitle"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="e.g. Read 1 chapter of System Design Primer"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="taskUrl" className="text-xs font-medium">Link / URL (Optional)</label>
+                  <Input
+                    id="taskUrl"
+                    value={newUrl}
+                    onChange={(e) => setNewUrl(e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-1">
+                <Button type="button" variant="ghost" onClick={() => setShowTaskForm(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={createTask.isPending}>
+                  {createTask.isPending ? 'Saving...' : 'Add Task'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       {data?.recommendations && (
         <TopicRecommendationsCard recommendations={data.recommendations} />
