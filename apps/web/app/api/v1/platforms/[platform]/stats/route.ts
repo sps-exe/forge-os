@@ -4,64 +4,53 @@ import { prisma } from '@forge/database'
 
 export const dynamic = 'force-dynamic'
 
-// ── LeetCode ─────────────────────────────────────────────────────────────────
+// ── Shared shape ──────────────────────────────────────────────────────────────
 
-function buildStatsShape(data: {
+interface LCStats {
   rating: number | null
   maxRating: number | null
   solvedCount: number
   rank: string | null
   streak: number | null
   details: Record<string, unknown>
-}) { return data }
+}
 
-async function fetchAlfa(username: string) {
-  const res = await fetch(
-    `https://alfa-leetcode-api.onrender.com/userProfile/${encodeURIComponent(username)}`,
-    {
-      headers: { 'User-Agent': 'forge-app/1.0' },
-      signal: AbortSignal.timeout(8000),
-      cache: 'no-store',
+// ── LeetCode helpers ──────────────────────────────────────────────────────────
+
+async function fetchAlfa(username: string): Promise<LCStats | null> {
+  try {
+    const res = await fetch(
+      `https://alfa-leetcode-api.onrender.com/userProfile/${encodeURIComponent(username)}`,
+      {
+        headers: { 'User-Agent': 'forge-app/1.0' },
+        signal: AbortSignal.timeout(8000),
+        cache: 'no-store',
+      }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    if (!data || data.errors || typeof data.totalSolved !== 'number') return null
+    return {
+      rating: null,
+      maxRating: null,
+      solvedCount: data.totalSolved ?? 0,
+      rank: data.ranking ? `#${Number(data.ranking).toLocaleString()}` : null,
+      streak: null,
+      details: {
+        easySolved: data.easySolved ?? 0,
+        easyTotal: data.totalEasy ?? 0,
+        mediumSolved: data.mediumSolved ?? 0,
+        mediumTotal: data.totalMedium ?? 0,
+        hardSolved: data.hardSolved ?? 0,
+        hardTotal: data.totalHard ?? 0,
+      },
     }
-  )
-  if (!res.ok) return null
-  const data = await res.json()
-  if (!data || data.errors) return null
-  return {
-    rating: null,
-    maxRating: null,
-    solvedCount: data.totalSolved ?? 0,
-    rank: data.ranking ? `#${Number(data.ranking).toLocaleString()}` : null,
-    streak: null,
-    details: {
-      easySolved: data.easySolved ?? 0,
-      easyTotal: data.totalEasy ?? 0,
-      mediumSolved: data.mediumSolved ?? 0,
-      mediumTotal: data.totalMedium ?? 0,
-      hardSolved: data.hardSolved ?? 0,
-      hardTotal: data.totalHard ?? 0,
-    },
+  } catch {
+    return null
   }
 }
 
-async function fetchLeetCodeStats(username: string): Promise<{ stats: ReturnType<typeof buildStatsShape>; resolvedHandle: string } | null> {
-  // Strategy 1: alfa-leetcode-api — try original handle, then hyphen↔underscore variants
-  try {
-    const candidates = Array.from(new Set([
-      username,
-      username.replaceAll('-', '_'),
-      username.replaceAll('_', '-'),
-    ]))
-
-    for (const candidate of candidates) {
-      const result = await fetchAlfa(candidate)
-      if (result) return { stats: result, resolvedHandle: candidate }
-    }
-  } catch (e) {
-    console.warn('[LeetCode] alfa-leetcode-api failed:', e)
-  }
-
-  // Strategy 2: Direct LeetCode GraphQL (works from some server regions)
+async function fetchGraphQL(username: string): Promise<LCStats | null> {
   try {
     const query = `
       query getUserProfile($username: String!) {
@@ -86,79 +75,66 @@ async function fetchLeetCodeStats(username: string): Promise<{ stats: ReturnType
       body: JSON.stringify({ query, variables: { username } }),
       signal: AbortSignal.timeout(8000),
     })
-    if (res.ok) {
-      const json = await res.json()
-      const user = json?.data?.matchedUser
-      if (user) {
-        const solved = Object.fromEntries(
-          (user.submitStatsGlobal?.acSubmissionNum ?? []).map(
-            (s: { difficulty: string; count: number }) => [s.difficulty, s.count]
-          )
-        )
-        const totals = Object.fromEntries(
-          (json?.data?.allQuestionsCount ?? []).map(
-            (s: { difficulty: string; count: number }) => [s.difficulty, s.count]
-          )
-        )
-        const contestRating = json?.data?.userContestRanking?.rating ?? null
-        return {
-          rating: contestRating ? Math.round(contestRating) : null,
-          maxRating: contestRating ? Math.round(contestRating) : null,
-          solvedCount: solved['All'] ?? 0,
-          rank:
-            user.profile?.ranking
-              ? `#${Number(user.profile.ranking).toLocaleString()}`
-              : null,
-          streak: null,
-          details: {
-            easySolved: solved['Easy'] ?? 0,
-            easyTotal: totals['Easy'] ?? 0,
-            mediumSolved: solved['Medium'] ?? 0,
-            mediumTotal: totals['Medium'] ?? 0,
-            hardSolved: solved['Hard'] ?? 0,
-            hardTotal: totals['Hard'] ?? 0,
-          },
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('[LeetCode] GraphQL direct fetch failed:', e)
-  }
-
-  // Strategy 3: leetcode-stats-api.herokuapp.com
-  try {
-    const res = await fetch(
-      `https://leetcode-stats-api.herokuapp.com/${encodeURIComponent(username)}`,
-      {
-        headers: { 'User-Agent': 'forge-app/1.0' },
-        signal: AbortSignal.timeout(8000),
-      }
+    if (!res.ok) return null
+    const json = await res.json()
+    const user = json?.data?.matchedUser
+    if (!user) return null
+    const solved = Object.fromEntries(
+      (user.submitStatsGlobal?.acSubmissionNum ?? []).map(
+        (s: { difficulty: string; count: number }) => [s.difficulty, s.count]
+      )
     )
-    if (res.ok) {
-      const data = await res.json()
-      if (data.status === 'success') {
-        return {
-          rating: null,
-          maxRating: null,
-          solvedCount: data.totalSolved ?? 0,
-          rank: data.ranking ? `#${Number(data.ranking).toLocaleString()}` : null,
-          streak: null,
-          details: {
-            easySolved: data.easySolved ?? 0,
-            easyTotal: data.totalEasy ?? 0,
-            mediumSolved: data.mediumSolved ?? 0,
-            mediumTotal: data.totalMedium ?? 0,
-            hardSolved: data.hardSolved ?? 0,
-            hardTotal: data.totalHard ?? 0,
-          },
-        }
-      }
+    const totals = Object.fromEntries(
+      (json?.data?.allQuestionsCount ?? []).map(
+        (s: { difficulty: string; count: number }) => [s.difficulty, s.count]
+      )
+    )
+    const contestRating = json?.data?.userContestRanking?.rating ?? null
+    return {
+      rating: contestRating ? Math.round(contestRating) : null,
+      maxRating: contestRating ? Math.round(contestRating) : null,
+      solvedCount: solved['All'] ?? 0,
+      rank: user.profile?.ranking
+        ? `#${Number(user.profile.ranking).toLocaleString()}`
+        : null,
+      streak: null,
+      details: {
+        easySolved: solved['Easy'] ?? 0,
+        easyTotal: totals['Easy'] ?? 0,
+        mediumSolved: solved['Medium'] ?? 0,
+        mediumTotal: totals['Medium'] ?? 0,
+        hardSolved: solved['Hard'] ?? 0,
+        hardTotal: totals['Hard'] ?? 0,
+      },
     }
-  } catch (e) {
-    console.warn('[LeetCode] heroku stats-api failed:', e)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Try the given handle + hyphen↔underscore variants across alfa and GraphQL.
+ * Returns { stats, resolvedHandle } for the first combination that works.
+ */
+async function fetchLeetCodeStats(
+  username: string
+): Promise<{ stats: LCStats; resolvedHandle: string } | null> {
+  const candidates = Array.from(
+    new Set([username, username.replaceAll('-', '_'), username.replaceAll('_', '-')])
+  )
+
+  // Strategy 1: alfa-leetcode-api (fastest, no CSRF)
+  for (const candidate of candidates) {
+    const result = await fetchAlfa(candidate)
+    if (result) return { stats: result, resolvedHandle: candidate }
   }
 
-  // All strategies failed — return null so caller returns 502
+  // Strategy 2: Direct LeetCode GraphQL
+  for (const candidate of candidates) {
+    const result = await fetchGraphQL(candidate)
+    if (result) return { stats: result, resolvedHandle: candidate }
+  }
+
   return null
 }
 
@@ -220,39 +196,66 @@ export async function GET(
       )
     }
 
-    let finalStats = null
-    let displayHandle = account.handle
-
     if (platformStr === 'LEETCODE') {
       const result = await fetchLeetCodeStats(account.handle)
-      if (result) {
-        finalStats = result.stats
-        displayHandle = result.resolvedHandle
-        // Self-heal: if we found a different (correct) variant, silently fix the DB
-        if (result.resolvedHandle !== account.handle) {
-          prisma.codingAccount.update({
+      if (!result) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'FETCH_FAILED',
+              message: `Could not fetch LeetCode stats for "${account.handle}". The handle may not exist or the API is temporarily unavailable.`,
+            },
+          },
+          { status: 502 }
+        )
+      }
+
+      // Self-heal: if we found a different (correct) variant, silently fix the DB
+      if (result.resolvedHandle !== account.handle) {
+        prisma.codingAccount
+          .update({
             where: { userId_platform: { userId: session.user.id, platform: 'LEETCODE' } },
             data: { handle: result.resolvedHandle },
-          }).catch((e: unknown) => console.warn('[LeetCode] self-heal DB update failed:', e))
-        }
+          })
+          .catch((e: unknown) => console.warn('[LeetCode] self-heal DB update failed:', e))
       }
-    } else if (platformStr === 'CODEFORCES') {
-      finalStats = await fetchCodeforcesStats(account.handle)
-    } else {
-      return NextResponse.json(
-        { success: false, error: { code: 'UNSUPPORTED', message: `GitHub stats not available via this route` } },
-        { status: 400 }
-      )
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          platform: platformStr,
+          handle: result.resolvedHandle,
+          ...result.stats,
+          capturedAt: new Date().toISOString(),
+        },
+      })
     }
 
-    if (!finalStats) {
-      return NextResponse.json(
-        { success: false, error: { code: 'FETCH_FAILED', message: `Could not fetch stats for ${account.handle} — the handle may not exist or the platform API is temporarily unavailable` } },
-        { status: 502 }
-      )
+    if (platformStr === 'CODEFORCES') {
+      const stats = await fetchCodeforcesStats(account.handle)
+      if (!stats) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'FETCH_FAILED',
+              message: `Could not fetch Codeforces stats for "${account.handle}".`,
+            },
+          },
+          { status: 502 }
+        )
+      }
+      return NextResponse.json({
+        success: true,
+        data: { platform: platformStr, handle: account.handle, ...stats, capturedAt: new Date().toISOString() },
+      })
     }
 
-    return NextResponse.json({ success: true, data: { platform: platformStr, handle: displayHandle, ...finalStats, capturedAt: new Date().toISOString() } })
+    return NextResponse.json(
+      { success: false, error: { code: 'UNSUPPORTED', message: 'GitHub stats not available via this route' } },
+      { status: 400 }
+    )
   } catch (err) {
     console.error('Error fetching platform stats:', err)
     return NextResponse.json(
