@@ -23,6 +23,7 @@ import { useUiStore } from '@/lib/stores/ui'
 
 export const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/profile', label: 'My Profile', icon: User2 },
   { href: '/tasks', label: 'Daily Tasks', icon: CheckSquare2 },
   { href: '/quests', label: 'Weekly Quests', icon: Target },
   { href: '/revision', label: 'Revision & Memory', icon: Brain },

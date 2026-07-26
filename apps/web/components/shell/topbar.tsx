@@ -87,11 +87,19 @@ export function Topbar({ user }: TopbarProps) {
 
               <div className="py-1">
                 <Link
-                  href="/settings/profile"
+                  href="/profile"
                   onClick={() => setDropdownOpen(false)}
                   className="hover:bg-accent flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors"
                 >
                   <User className="size-4 text-muted-foreground" />
+                  <span>My Profile</span>
+                </Link>
+                <Link
+                  href="/settings/profile"
+                  onClick={() => setDropdownOpen(false)}
+                  className="hover:bg-accent flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors"
+                >
+                  <Settings className="size-4 text-muted-foreground" />
                   <span>Profile Settings</span>
                 </Link>
                 <Link
