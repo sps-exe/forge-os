@@ -138,6 +138,89 @@ async function fetchCodeforcesStats(handle: string) {
   }
 }
 
+// ── GitHub ────────────────────────────────────────────────────────────────────
+
+async function fetchGithubStats(username: string) {
+  try {
+    const [userRes, contribRes] = await Promise.all([
+      fetch(`https://api.github.com/users/${encodeURIComponent(username)}`, {
+        headers: { 'User-Agent': 'forge-app/1.0' },
+        signal: AbortSignal.timeout(6000),
+        cache: 'no-store',
+      }),
+      fetch(`https://github-contributions.vercel.app/api/v1/${encodeURIComponent(username)}`, {
+        headers: { 'User-Agent': 'forge-app/1.0' },
+        signal: AbortSignal.timeout(8000),
+        cache: 'no-store',
+      }),
+    ])
+
+    if (!userRes.ok) return null
+    const user = await userRes.json()
+
+    let contributionsToday = 0
+    let contributionsThisYear = 0
+    let streak = 0
+    let calendar: { date: string; count: number; level: number }[] = []
+
+    if (contribRes.ok) {
+      const contribData = await contribRes.json()
+      const rawCalendar: Array<{ date: string; count: number; intensity: string }> =
+        contribData.contributions ?? []
+
+      const thisYearStr = new Date().getFullYear().toString()
+      const yearObj = contribData.years?.find((y: { year: string }) => y.year === thisYearStr)
+      contributionsThisYear = yearObj?.total ?? 0
+
+      const todayStr = new Date().toISOString().split('T')[0]
+      const todayItem = rawCalendar.find((c) => c.date === todayStr)
+      contributionsToday = todayItem?.count ?? 0
+
+      // Map calendar for heatmap
+      calendar = rawCalendar.map((c) => ({
+        date: c.date,
+        count: c.count,
+        level: Math.min(4, Math.max(0, parseInt(c.intensity || '0', 10))),
+      }))
+
+      // Calculate streak
+      const sorted = [...rawCalendar].sort((a, b) => b.date.localeCompare(a.date))
+      let current = 0
+      for (let i = 0; i < sorted.length; i++) {
+        if (sorted[i].count > 0) {
+          current++
+        } else {
+          // Allow today to be 0 if yesterday had contributions
+          if (i === 0 && sorted[i].date === todayStr) continue
+          break
+        }
+      }
+      streak = current
+    }
+
+    return {
+      rating: null,
+      maxRating: null,
+      solvedCount: null,
+      rank: null,
+      streak,
+      details: {
+        followers: user.followers ?? 0,
+        following: user.following ?? 0,
+        publicRepos: user.public_repos ?? 0,
+        totalStars: 0,
+        contributionsToday,
+        contributionsThisYear,
+        contributionCalendar: calendar,
+        topLanguages: [],
+      },
+    }
+  } catch (e) {
+    console.warn('[GitHub] stats fetch failed:', e)
+    return null
+  }
+}
+
 // ── Route handler ─────────────────────────────────────────────────────────────
 
 export async function GET(
@@ -223,8 +306,28 @@ export async function GET(
       })
     }
 
+    if (platformStr === 'GITHUB') {
+      const stats = await fetchGithubStats(account.handle)
+      if (!stats) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'FETCH_FAILED',
+              message: `Could not fetch GitHub stats for "${account.handle}".`,
+            },
+          },
+          { status: 502 }
+        )
+      }
+      return NextResponse.json({
+        success: true,
+        data: { platform: platformStr, handle: account.handle, ...stats, capturedAt: new Date().toISOString() },
+      })
+    }
+
     return NextResponse.json(
-      { success: false, error: { code: 'UNSUPPORTED', message: 'GitHub stats not available via this route' } },
+      { success: false, error: { code: 'UNSUPPORTED', message: 'Platform not supported' } },
       { status: 400 }
     )
   } catch (err) {

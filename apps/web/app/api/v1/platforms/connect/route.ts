@@ -78,6 +78,22 @@ async function verifyCodeforcesHandle(handle: string): Promise<boolean> {
   }
 }
 
+/**
+ * Verify a GitHub handle exists via public API.
+ */
+async function verifyGithubHandle(handle: string): Promise<boolean> {
+  try {
+    const res = await fetch(`https://api.github.com/users/${encodeURIComponent(handle)}`, {
+      headers: { 'User-Agent': 'forge-app/1.0' },
+      signal: AbortSignal.timeout(6000),
+      cache: 'no-store',
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
 export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -133,6 +149,22 @@ export async function POST(req: Request) {
             error: {
               code: 'HANDLE_NOT_FOUND',
               message: `Codeforces handle "${resolvedHandle}" was not found. Please double-check your handle on codeforces.com.`,
+            },
+          },
+          { status: 422 }
+        )
+      }
+    }
+
+    if (upperPlatform === 'GITHUB') {
+      const exists = await verifyGithubHandle(resolvedHandle)
+      if (!exists) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'HANDLE_NOT_FOUND',
+              message: `GitHub user "${resolvedHandle}" was not found. Please double-check your username on github.com.`,
             },
           },
           { status: 422 }
