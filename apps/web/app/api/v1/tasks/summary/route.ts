@@ -40,8 +40,9 @@ export async function GET() {
     currentStreak += 1
   }
 
-  for (let i = 0; i < uniqueDays.length; i++) {
-    const day = new Date(uniqueDays[i])
+  for (const dayStr of uniqueDays) {
+    if (!dayStr) continue
+    const day = new Date(dayStr)
     const diffDays = Math.floor((Date.now() - day.getTime()) / (1000 * 60 * 60 * 24))
     if (diffDays <= currentStreak + 1) {
       currentStreak += 1
