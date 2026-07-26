@@ -17,13 +17,46 @@ interface LCStats {
 
 // ── LeetCode helpers ──────────────────────────────────────────────────────────
 
+async function fetchVercelApi(username: string): Promise<LCStats | null> {
+  try {
+    const res = await fetch(
+      `https://leetcode-api-faisalshohag.vercel.app/${encodeURIComponent(username)}`,
+      {
+        headers: { 'User-Agent': 'forge-app/1.0' },
+        signal: AbortSignal.timeout(6000),
+        cache: 'no-store',
+      }
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+    if (!data || typeof data.totalSolved !== 'number') return null
+    return {
+      rating: null,
+      maxRating: null,
+      solvedCount: data.totalSolved,
+      rank: data.ranking ? `#${Number(data.ranking).toLocaleString()}` : null,
+      streak: null,
+      details: {
+        easySolved: data.easySolved ?? 0,
+        easyTotal: data.totalEasy ?? 0,
+        mediumSolved: data.mediumSolved ?? 0,
+        mediumTotal: data.totalMedium ?? 0,
+        hardSolved: data.hardSolved ?? 0,
+        hardTotal: data.totalHard ?? 0,
+      },
+    }
+  } catch {
+    return null
+  }
+}
+
 async function fetchAlfa(username: string): Promise<LCStats | null> {
   try {
     const res = await fetch(
       `https://alfa-leetcode-api.onrender.com/userProfile/${encodeURIComponent(username)}`,
       {
         headers: { 'User-Agent': 'forge-app/1.0' },
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(10000),
         cache: 'no-store',
       }
     )
@@ -50,70 +83,8 @@ async function fetchAlfa(username: string): Promise<LCStats | null> {
   }
 }
 
-async function fetchGraphQL(username: string): Promise<LCStats | null> {
-  try {
-    const query = `
-      query getUserProfile($username: String!) {
-        matchedUser(username: $username) {
-          submitStatsGlobal { acSubmissionNum { difficulty count } }
-          profile { ranking }
-        }
-        allQuestionsCount { difficulty count }
-        userContestRanking(username: $username) { rating globalRanking }
-      }
-    `
-    const res = await fetch('https://leetcode.com/graphql/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        Referer: 'https://leetcode.com/',
-        Origin: 'https://leetcode.com',
-        'x-csrftoken': 'na',
-      },
-      body: JSON.stringify({ query, variables: { username } }),
-      signal: AbortSignal.timeout(8000),
-    })
-    if (!res.ok) return null
-    const json = await res.json()
-    const user = json?.data?.matchedUser
-    if (!user) return null
-    const solved = Object.fromEntries(
-      (user.submitStatsGlobal?.acSubmissionNum ?? []).map(
-        (s: { difficulty: string; count: number }) => [s.difficulty, s.count]
-      )
-    )
-    const totals = Object.fromEntries(
-      (json?.data?.allQuestionsCount ?? []).map(
-        (s: { difficulty: string; count: number }) => [s.difficulty, s.count]
-      )
-    )
-    const contestRating = json?.data?.userContestRanking?.rating ?? null
-    return {
-      rating: contestRating ? Math.round(contestRating) : null,
-      maxRating: contestRating ? Math.round(contestRating) : null,
-      solvedCount: solved['All'] ?? 0,
-      rank: user.profile?.ranking
-        ? `#${Number(user.profile.ranking).toLocaleString()}`
-        : null,
-      streak: null,
-      details: {
-        easySolved: solved['Easy'] ?? 0,
-        easyTotal: totals['Easy'] ?? 0,
-        mediumSolved: solved['Medium'] ?? 0,
-        mediumTotal: totals['Medium'] ?? 0,
-        hardSolved: solved['Hard'] ?? 0,
-        hardTotal: totals['Hard'] ?? 0,
-      },
-    }
-  } catch {
-    return null
-  }
-}
-
 /**
- * Try the given handle + hyphen↔underscore variants across alfa and GraphQL.
+ * Try the given handle + hyphen↔underscore variants across fast Vercel proxy then Alfa proxy.
  * Returns { stats, resolvedHandle } for the first combination that works.
  */
 async function fetchLeetCodeStats(
@@ -123,15 +94,15 @@ async function fetchLeetCodeStats(
     new Set([username, username.replaceAll('-', '_'), username.replaceAll('_', '-')])
   )
 
-  // Strategy 1: alfa-leetcode-api (fastest, no CSRF)
+  // Strategy 1: Fast Vercel LeetCode Proxy (200ms, no cold starts)
   for (const candidate of candidates) {
-    const result = await fetchAlfa(candidate)
+    const result = await fetchVercelApi(candidate)
     if (result) return { stats: result, resolvedHandle: candidate }
   }
 
-  // Strategy 2: Direct LeetCode GraphQL
+  // Strategy 2: Alfa LeetCode API (Render backup)
   for (const candidate of candidates) {
-    const result = await fetchGraphQL(candidate)
+    const result = await fetchAlfa(candidate)
     if (result) return { stats: result, resolvedHandle: candidate }
   }
 
@@ -145,7 +116,7 @@ async function fetchCodeforcesStats(handle: string) {
     const res = await fetch(
       `https://codeforces.com/api/user.info?handles=${encodeURIComponent(handle)}`,
       {
-        next: { revalidate: 300 },
+        cache: 'no-store',
         signal: AbortSignal.timeout(8000),
       }
     )
@@ -211,9 +182,9 @@ export async function GET(
         )
       }
 
-      // Self-heal: if we found a different (correct) variant, silently fix the DB
+      // Self-heal: if we found a different (correct) variant (e.g. sps_exe instead of sps-exe), update DB
       if (result.resolvedHandle !== account.handle) {
-        prisma.codingAccount
+        await prisma.codingAccount
           .update({
             where: { userId_platform: { userId: session.user.id, platform: 'LEETCODE' } },
             data: { handle: result.resolvedHandle },

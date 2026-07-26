@@ -23,6 +23,25 @@ async function resolveAndVerifyLeetCodeHandle(raw: string): Promise<string | nul
   for (const candidate of candidates) {
     try {
       const res = await fetch(
+        `https://leetcode-api-faisalshohag.vercel.app/${encodeURIComponent(candidate)}`,
+        {
+          headers: { 'User-Agent': 'forge-app/1.0' },
+          signal: AbortSignal.timeout(6000),
+          cache: 'no-store',
+        }
+      )
+      if (res.ok) {
+        const data = await res.json()
+        if (data && typeof data.totalSolved === 'number') {
+          return candidate
+        }
+      }
+    } catch {
+      // try fallback
+    }
+
+    try {
+      const res = await fetch(
         `https://alfa-leetcode-api.onrender.com/userProfile/${encodeURIComponent(candidate)}`,
         {
           headers: { 'User-Agent': 'forge-app/1.0' },
@@ -32,15 +51,14 @@ async function resolveAndVerifyLeetCodeHandle(raw: string): Promise<string | nul
       )
       if (!res.ok) continue
       const data = await res.json()
-      // data.errors means user not found; absence means success
       if (data && !data.errors && typeof data.totalSolved === 'number') {
-        return candidate // canonical handle that works
+        return candidate
       }
     } catch {
-      // timeout / network error — skip this candidate, not a definitive "not found"
+      // skip
     }
   }
-  return null // none of the variants exist
+  return null
 }
 
 /**
