@@ -11,7 +11,7 @@ export async function GET() {
     )
   }
 
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = new Date().toISOString().split('T')[0] ?? ''
   const todayDate = new Date(`${todayStr}T00:00:00.000Z`)
 
   const tasksToday = await prisma.dailyTask.findMany({
@@ -32,7 +32,7 @@ export async function GET() {
   })
 
   const uniqueDays = Array.from(
-    new Set(history.map((h) => new Date(h.date).toISOString().split('T')[0]))
+    new Set(history.map((h) => new Date(h.date).toISOString().split('T')[0] ?? ''))
   )
 
   let currentStreak = 0

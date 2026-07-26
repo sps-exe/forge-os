@@ -21,7 +21,7 @@ export async function GET() {
   const daysMap = new Map<string, { completedCount: number; totalCount: number }>()
 
   for (const item of historyRecords) {
-    const dateStr = new Date(item.date).toISOString().split('T')[0]
+    const dateStr = new Date(item.date).toISOString().split('T')[0] ?? ''
     const existing = daysMap.get(dateStr) ?? { completedCount: 0, totalCount: 0 }
     existing.totalCount += 1
     if (item.status === 'COMPLETED') {

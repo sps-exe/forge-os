@@ -11,7 +11,7 @@ export async function GET() {
     )
   }
 
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = new Date().toISOString().split('T')[0] ?? ''
   const todayDate = new Date(`${todayStr}T00:00:00.000Z`)
 
   let tasks = await prisma.dailyTask.findMany({
