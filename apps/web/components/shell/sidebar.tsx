@@ -35,8 +35,7 @@ export const NAV_ITEMS = [
 ] as const
 
 export const SETTINGS_ITEMS = [
-  { href: '/settings/profile', label: 'Profile', icon: User2 },
-  { href: '/settings/connections', label: 'Connections', icon: Settings },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ] as const
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
