@@ -283,11 +283,11 @@ function OriginkitBase_ImageBox(props: Partial<ImageBoxProps>) {
                 slab.visible = true;
                 if (Math.random() > 0.5) {
                     slab.material =
-                        colorMats[(5 * colorIndex) % colorMats.length];
+                        colorMats[(5 * colorIndex) % colorMats.length]!;
                     colorIndex++;
                 } else {
                     slab.material =
-                        imageMats[(3 * imageIndex) % imageMats.length];
+                        imageMats[(3 * imageIndex) % imageMats.length]!;
                     imageIndex++;
                 }
             }
