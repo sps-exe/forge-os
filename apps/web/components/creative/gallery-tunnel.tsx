@@ -374,6 +374,7 @@ function OriginkitBase_ImageBox(props: Partial<ImageBoxProps>) {
 
             for (let i = fading.length - 1; i >= 0; i--) {
                 const m = fading[i];
+                if (!m) continue;
                 m.opacity = Math.min(1, m.opacity + dt / FADE_IN);
                 if (m.opacity >= 1) fading.splice(i, 1);
             }

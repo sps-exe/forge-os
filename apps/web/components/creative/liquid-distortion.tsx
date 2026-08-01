@@ -449,6 +449,7 @@ void main () {
         isHovering = true;
         e.preventDefault();
         const t = e.targetTouches[0];
+        if (!t) return;
         const rect = container!.getBoundingClientRect();
         updatePointerPosition(t.clientX - rect.left, t.clientY - rect.top);
       };

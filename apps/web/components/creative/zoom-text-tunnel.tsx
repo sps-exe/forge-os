@@ -68,7 +68,7 @@ function OriginkitBase_ZoomTextTunnel(props: ZoomTextTunnelProps) {
   }, [hold]);
 
   const longest = useMemo(
-    () => safeTexts.reduce((a, b) => (b.length > a.length ? b : a), safeTexts[0]),
+    () => safeTexts.length > 0 ? safeTexts.reduce((a, b) => (b.length > a.length ? b : a), safeTexts[0]!) : "",
     [safeTexts]
   );
 
@@ -77,9 +77,9 @@ function OriginkitBase_ZoomTextTunnel(props: ZoomTextTunnelProps) {
     const sel = [".slot-0", ".slot-1"];
 
     if (safeTexts.length <= 1) {
-      if (slots[0]) slots[0].textContent = safeTexts[0];
-      animate(sel[0], { scale: 1, opacity: 1 }, { duration: 0 });
-      animate(sel[1], { scale: 0.05, opacity: 0 }, { duration: 0 });
+      if (slots[0]) slots[0].textContent = safeTexts[0] ?? "";
+      animate(sel[0]! as any, { scale: 1, opacity: 1 } as any, { duration: 0 } as any);
+      animate(sel[1]! as any, { scale: 0.05, opacity: 0 } as any, { duration: 0 } as any);
       return;
     }
 
@@ -87,9 +87,9 @@ function OriginkitBase_ZoomTextTunnel(props: ZoomTextTunnelProps) {
     let active = 0;
     let idx = 0;
 
-    if (slots[0]) slots[0].textContent = safeTexts[0];
-    animate(sel[0], { scale: 1, opacity: 1 }, { duration: 0 });
-    animate(sel[1], { scale: 0.05, opacity: 0 }, { duration: 0 });
+    if (slots[0]) slots[0].textContent = safeTexts[0] ?? "";
+    animate(sel[0]! as any, { scale: 1, opacity: 1 } as any, { duration: 0 } as any);
+    animate(sel[1]! as any, { scale: 0.05, opacity: 0 } as any, { duration: 0 } as any);
 
     const wait = (ms: number) =>
       new Promise<void>((res) => {
@@ -104,19 +104,19 @@ function OriginkitBase_ZoomTextTunnel(props: ZoomTextTunnelProps) {
 
         const inc = 1 - active;
         const nextIdx = (idx + 1) % safeTexts.length;
-        if (slots[inc]) slots[inc].textContent = safeTexts[nextIdx];
+        if (slots[inc]) slots[inc].textContent = safeTexts[nextIdx] ?? "";
 
-        await settle(animate(sel[inc], { scale: 0.05, opacity: 0 }, { duration: 0 }));
+        await settle(animate(sel[inc]! as any, { scale: 0.05, opacity: 0 } as any, { duration: 0 } as any));
         if (cancelled) return;
 
-        const enter = animate(sel[inc], { scale: 1, opacity: 1 }, transition);
-        const exit = animate(sel[active], { scale: clampedMaxScale, opacity: 0 }, transition);
+        const enter = animate(sel[inc]! as any, { scale: 1, opacity: 1 } as any, transition as any);
+        const exit = animate(sel[active]! as any, { scale: clampedMaxScale, opacity: 0 } as any, transition as any);
         controlsRef.current = [enter, exit];
 
         await settle(exit);
         if (cancelled) return;
 
-        await settle(animate(sel[active], { scale: 0.05, opacity: 0 }, { duration: 0 }));
+        await settle(animate(sel[active]! as any, { scale: 0.05, opacity: 0 } as any, { duration: 0 } as any));
         active = inc;
         idx = nextIdx;
       }
