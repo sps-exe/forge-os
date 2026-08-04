@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useMemo } from 'react'import { Code2, GitBranch, Swords, Zap, Terminal } from 'lucide-react'
+import React, { useMemo } from 'react'
+import { Code2, GitBranch, Swords, Zap, Terminal } from 'lucide-react'
 import type { GithubDetails, LeetCodeDetails } from '@forge/shared'
 import {
   ContributionHeatmap,
