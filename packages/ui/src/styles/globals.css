@@ -4,30 +4,30 @@
 
 @layer base {
   :root {
-    /* Forge dark theme — GitHub-dark inspired. Dark is the default. */
-    --background: 216 28% 7%; /* #0d1117 */
-    --foreground: 210 17% 91%; /* #e6edf3 */
-    --surface: 215 21% 11%; /* #161b22 */
-    --surface-raised: 214 14% 16%; /* #21262d */
-    --border: 214 13% 20%; /* #30363d */
-    --input: 214 13% 20%;
-    --ring: 212 92% 45%;
-    --primary: 212 92% 58%; /* #58a6ff-ish blue */
-    --primary-foreground: 216 28% 7%;
-    --secondary: 214 14% 16%;
-    --secondary-foreground: 210 17% 91%;
-    --muted: 214 14% 16%;
-    --muted-foreground: 212 9% 58%; /* #8b949e */
-    --accent: 214 14% 20%;
-    --accent-foreground: 210 17% 91%;
-    --destructive: 355 66% 54%; /* #da3633 */
-    --destructive-foreground: 210 17% 91%;
-    --success: 137 55% 36%; /* #2ea043 */
-    --success-foreground: 210 17% 91%;
-    --warning: 40 90% 50%;
-    --warning-foreground: 216 28% 7%;
-    --heat-0: 214 14% 13%;
-    --radius: 0.625rem;
+    /* Vintage Hacker Green Theme */
+    --background: 0 0% 4%; /* Near black */
+    --foreground: 120 100% 75%; /* Soft terminal green */
+    --surface: 120 20% 8%;
+    --surface-raised: 120 20% 12%;
+    --border: 120 50% 20%;
+    --input: 120 50% 20%;
+    --ring: 120 100% 50%;
+    --primary: 120 100% 50%; /* Bright matrix green */
+    --primary-foreground: 0 0% 0%;
+    --secondary: 120 20% 12%;
+    --secondary-foreground: 120 100% 75%;
+    --muted: 120 20% 12%;
+    --muted-foreground: 120 50% 40%;
+    --accent: 120 30% 15%;
+    --accent-foreground: 120 100% 50%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 0%;
+    --success: 120 100% 50%;
+    --success-foreground: 0 0% 0%;
+    --warning: 40 100% 50%;
+    --warning-foreground: 0 0% 0%;
+    --heat-0: 120 20% 10%;
+    --radius: 0rem; /* Brutalist/Retro square corners */
   }
 
   .light {
@@ -64,6 +64,6 @@
     @apply border border-white/10 bg-white/5 backdrop-blur-xl;
   }
   .text-gradient {
-    @apply bg-gradient-to-r from-primary via-sky-400 to-emerald-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-b from-[hsl(120,100%,80%)] to-[hsl(120,100%,40%)] bg-clip-text text-transparent;
   }
 }

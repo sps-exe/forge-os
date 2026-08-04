@@ -192,10 +192,11 @@ export default function CurvedLoop({
     return (
         <div
             style={{
+                position: "relative",
                 visibility: ready ? "visible" : "hidden",
-                minHeight: "100vh",
                 width: "100%",
                 height: "100%",
+                minHeight: "300px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -211,7 +212,7 @@ export default function CurvedLoop({
                     transform: "translate(-50%, -50%)",
                     userSelect: "none",
                     width: "100%",
-                    aspectRatio: "1440 / 800",
+                    height: "100%",
                     overflow: "visible",
                     display: "block",
                     fill: color,
