@@ -1,6 +1,7 @@
 'use client'
 
 import { Calendar, ExternalLink } from 'lucide-react'
+import Link from 'next/link'
 import { Skeleton } from '@forge/ui'
 import { useUpcomingContests } from '@/lib/api/hooks'
 import GlitchText from '@/components/creative/glitch-text'
