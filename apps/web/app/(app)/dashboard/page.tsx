@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { Code2, GitBranch, Swords, Zap, Terminal } from 'lucide-react'
+import { Code2, GitBranch, Swords, Zap, Terminal, Activity, CheckCircle2 } from 'lucide-react'
 import type { GithubDetails, LeetCodeDetails } from '@forge/shared'
 import {
   ContributionHeatmap,
@@ -36,16 +36,20 @@ export default function DashboardPage() {
   const githubDetails = githubStats?.details as unknown as GithubDetails | undefined
   const { data: taskHistory, isLoading: taskHistoryLoading } = useTaskHistory()
 
-  const heatmapDays = useMemo(() => {
+  const { heatmapDays, totalTasksYear, todayTasks, currentStreak } = useMemo(() => {
     const days = []
     const today = new Date()
     // Create a map for O(1) lookups: date string 'YYYY-MM-DD' -> count
     const historyMap = new Map(taskHistory?.days.map(d => [d.date, d.completedCount]) ?? [])
 
+    let totalTasksYear = 0
+    let todayTasks = 0
+    let currentStreak = 0
+
     for (let i = 364; i >= 0; i--) {
       const d = new Date(today)
       d.setDate(today.getDate() - i)
-      const dateStr = d.toISOString().split('T')[0]
+      const dateStr = d.toISOString().split('T')[0] ?? ''
       const count = historyMap.get(dateStr) ?? 0
       
       let level = 0
@@ -59,12 +63,31 @@ export default function DashboardPage() {
         count,
         level,
       })
-    }
-    return days
-  }, [taskHistory])
 
-  const totalContributions = useMemo(() => {
-    return taskHistory?.days.reduce((acc, day) => acc + day.completedCount, 0) ?? 0
+      totalTasksYear += count
+      if (i === 0) {
+        todayTasks = count
+      }
+    }
+
+    // Calculate streak going backwards
+    for (let i = 0; i <= 364; i++) {
+      const d = new Date(today)
+      d.setDate(today.getDate() - i)
+      const dateStr = d.toISOString().split('T')[0] ?? ''
+      const count = historyMap.get(dateStr) ?? 0
+
+      if (count > 0) {
+        currentStreak++
+      } else if (i === 0) {
+        // Today is 0, skip
+        continue
+      } else {
+        break
+      }
+    }
+
+    return { heatmapDays: days, totalTasksYear, todayTasks, currentStreak }
   }, [taskHistory])
 
   const quote = QUOTES[new Date().getDate() % QUOTES.length]
@@ -100,12 +123,12 @@ export default function DashboardPage() {
           <div className="bg-primary/5 border border-primary/20 p-3 rounded flex items-center gap-4">
             <div className="text-right">
               <div className="text-xs text-primary/50">STREAK_STATUS</div>
-              <div className="text-primary font-bold">{githubStats?.streak ?? 0} DAYS</div>
+              <div className="text-primary font-bold">{currentStreak} DAYS</div>
             </div>
             <div className="h-10 w-px bg-primary/20"></div>
             <StreakFlame
-              days={githubStats?.streak ?? 0}
-              active={(githubStats?.streak ?? 0) > 0}
+              days={currentStreak}
+              active={currentStreak > 0}
               size="sm"
             />
           </div>
@@ -183,7 +206,7 @@ export default function DashboardPage() {
               <Skeleton className="h-10 w-24 bg-primary/10 mb-1" />
             ) : (
               <div className="text-4xl font-bold text-white mb-1">
-                {totalContributions.toLocaleString()}
+                {totalTasksYear.toLocaleString()}
               </div>
             )}
             <div className="text-primary/40 text-xs mt-auto pt-2 border-t border-primary/10">
