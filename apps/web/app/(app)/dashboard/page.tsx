@@ -52,10 +52,10 @@ export default function DashboardPage() {
                   <Terminal className="size-4" />
                   <span>forge_os v1.0.4</span>
                 </div>
-                <h1 className="text-2xl font-bold text-primary flex items-center gap-3">
+                <h1 className="text-2xl font-bold text-primary flex flex-wrap items-center gap-2 md:gap-3">
                   <span className="text-primary/50">&gt;</span> 
                   <span>SYSTEM_LOGIN:</span>
-                  <GlitchText text={displayName.toUpperCase()} active={false} />
+                  <GlitchText text={displayName.toUpperCase()} active={false} className="max-w-[200px] md:max-w-[400px]" />
                 </h1>
               </div>
             )}
@@ -166,7 +166,7 @@ export default function DashboardPage() {
                 <span>[ CONTRIBUTION_MATRIX ]</span>
              </h3>
            </div>
-           <div className="p-6 overflow-x-auto relative">
+           <div className="p-6 overflow-x-auto relative scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
               <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,65,0.02)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none"></div>
               <div className="relative z-10">
                 <ContributionHeatmap days={githubDetails.contributionCalendar} />

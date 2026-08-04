@@ -27,12 +27,12 @@ export default function GlitchText({ text, className = "", active = true }: Glit
   };
 
   return (
-    <div className={`relative inline-block ${className}`}>
+    <div className={`relative inline-block whitespace-nowrap max-w-full ${className}`}>
       <motion.span
         variants={glitchVariants}
         initial="hidden"
         animate={active ? "visible" : "hidden"}
-        className="relative z-10"
+        className="relative z-10 block truncate"
       >
         {text}
       </motion.span>
@@ -41,7 +41,7 @@ export default function GlitchText({ text, className = "", active = true }: Glit
         variants={glitchVariants}
         initial="hidden"
         animate={active ? "visible" : "hidden"}
-        className="absolute top-0 left-[-2px] text-red-500 opacity-50 z-0 mix-blend-screen"
+        className="absolute top-0 left-[-2px] w-full text-red-500 opacity-50 z-0 mix-blend-screen block truncate"
         aria-hidden="true"
         style={{ animationDelay: "0.1s" }}
       >
@@ -52,7 +52,7 @@ export default function GlitchText({ text, className = "", active = true }: Glit
         variants={glitchVariants}
         initial="hidden"
         animate={active ? "visible" : "hidden"}
-        className="absolute top-0 left-[2px] text-blue-500 opacity-50 z-0 mix-blend-screen"
+        className="absolute top-0 left-[2px] w-full text-blue-500 opacity-50 z-0 mix-blend-screen block truncate"
         aria-hidden="true"
         style={{ animationDelay: "0.2s" }}
       >

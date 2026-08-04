@@ -25,25 +25,25 @@ export function WeeklyQuestsCard() {
 
   return (
     <div className="bg-black border border-primary/30 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(0,255,65,0.05)] hover:border-primary/60 transition-all font-mono group h-full flex flex-col">
-      <div className="px-5 py-4 border-b border-primary/20 flex flex-row items-center justify-between bg-primary/5 group-hover:bg-primary/10 transition-colors">
-        <h3 className="flex items-center gap-2 font-bold text-primary tracking-tight">
-          <Target className="text-primary size-4" />
-          <GlitchText text="[ WEEKLY_QUESTS ]" active={false} />
+      <div className="px-5 py-4 border-b border-primary/20 flex flex-row items-center justify-between gap-2 bg-primary/5 group-hover:bg-primary/10 transition-colors">
+        <h3 className="flex items-center gap-2 font-bold text-primary tracking-tight min-w-0">
+          <Target className="text-primary size-4 shrink-0" />
+          <GlitchText text="[ WEEKLY_QUESTS ]" active={false} className="truncate" />
         </h3>
         <Link
           href="/quests"
-          className="text-xs text-primary/70 hover:text-primary transition-colors flex items-center gap-1 border border-primary/30 px-2 py-1 rounded bg-black"
+          className="text-xs shrink-0 text-primary/70 hover:text-primary transition-colors flex items-center gap-1 border border-primary/30 px-2 py-1 rounded bg-black"
         >
-          VIEW_ALL ({data.completedCount}/{data.totalCount})
-          <ArrowRight className="size-3" />
+          VIEW_ALL ({data.completedCount ?? 0}/{data.totalCount ?? 0})
+          <ArrowRight className="size-3 shrink-0" />
         </Link>
       </div>
 
       <div className="p-5 space-y-4 flex-1 flex flex-col">
         <div className="flex items-center justify-between rounded-none border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
           <span className="text-primary/70 font-semibold">&gt; CYCLE: {data.weekKey}</span>
-          <span className="text-primary font-bold">
-            +{data.totalXpEarned} / {data.totalXpAvailable} XP
+          <span className="text-primary font-bold shrink-0">
+            +{data.totalXpEarned ?? 0} / {data.totalXpAvailable ?? 0} XP
           </span>
         </div>
 

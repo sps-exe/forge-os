@@ -13,12 +13,12 @@ export function AchievementsCard() {
 
   return (
     <div className="bg-black border border-primary/30 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(0,255,65,0.05)] hover:border-primary/60 transition-all font-mono group h-full flex flex-col">
-      <div className="px-5 py-4 border-b border-primary/20 flex flex-row items-center justify-between bg-primary/5 group-hover:bg-primary/10 transition-colors">
-        <h3 className="flex items-center gap-2 font-bold text-primary tracking-tight">
-          <Award className="text-primary size-4" />
-          <GlitchText text="[ ACHIEVEMENTS ]" active={false} />
+      <div className="px-5 py-4 border-b border-primary/20 flex flex-row items-center justify-between gap-2 bg-primary/5 group-hover:bg-primary/10 transition-colors">
+        <h3 className="flex items-center gap-2 font-bold text-primary tracking-tight min-w-0">
+          <Award className="text-primary size-4 shrink-0" />
+          <GlitchText text="[ ACHIEVEMENTS ]" active={false} className="truncate" />
         </h3>
-        <Link href="/achievements" className="text-xs text-primary/70 hover:text-primary transition-colors border border-primary/30 px-2 py-1 rounded bg-black">
+        <Link href="/achievements" className="text-xs shrink-0 text-primary/70 hover:text-primary transition-colors border border-primary/30 px-2 py-1 rounded bg-black">
           UNLOCKS
         </Link>
       </div>
@@ -37,8 +37,8 @@ export function AchievementsCard() {
           <div className="space-y-5 flex-1 flex flex-col">
             <div>
               <div className="mb-3 flex items-center justify-between text-xs">
-                <span className="text-primary/70 font-semibold">
-                  &gt; UNLOCKED: {data.earnedCount}/{data.totalCount}
+                <span className="text-primary/70 font-semibold truncate">
+                  &gt; UNLOCKED: {data.earnedCount ?? 0}/{data.totalCount ?? 0}
                 </span>
                 <span className={`font-bold px-2 py-0.5 rounded ${progress === 100 ? 'text-black bg-primary' : 'text-primary border border-primary/30 bg-black'}`}>
                   {progress}%
