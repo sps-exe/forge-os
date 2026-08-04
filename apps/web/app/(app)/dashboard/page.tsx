@@ -1,13 +1,13 @@
 'use client'
 
-import { Code2, GitBranch, Swords, Zap, Terminal } from 'lucide-react'
+import React, { useMemo } from 'react'import { Code2, GitBranch, Swords, Zap, Terminal } from 'lucide-react'
 import type { GithubDetails, LeetCodeDetails } from '@forge/shared'
 import {
   ContributionHeatmap,
   Skeleton,
   StreakFlame,
 } from '@forge/ui'
-import { useAccounts, useMe, usePlatformStats } from '@/lib/api/hooks'
+import { useAccounts, useMe, usePlatformStats, useTaskHistory } from '@/lib/api/hooks'
 import { PlatformCard } from '@/components/dashboard/platform-card'
 import { ContestsCard } from '@/components/dashboard/contests-card'
 import { DailyTasksCard } from '@/components/dashboard/daily-tasks-card'
@@ -33,6 +33,38 @@ export default function DashboardPage() {
   const githubConnected = connected('GITHUB')
   const { data: githubStats } = usePlatformStats('GITHUB', githubConnected)
   const githubDetails = githubStats?.details as unknown as GithubDetails | undefined
+  const { data: taskHistory, isLoading: taskHistoryLoading } = useTaskHistory()
+
+  const heatmapDays = useMemo(() => {
+    const days = []
+    const today = new Date()
+    // Create a map for O(1) lookups: date string 'YYYY-MM-DD' -> count
+    const historyMap = new Map(taskHistory?.days.map(d => [d.date, d.completedCount]) ?? [])
+
+    for (let i = 364; i >= 0; i--) {
+      const d = new Date(today)
+      d.setDate(today.getDate() - i)
+      const dateStr = d.toISOString().split('T')[0]
+      const count = historyMap.get(dateStr) ?? 0
+      
+      let level = 0
+      if (count > 0) level = 1
+      if (count >= 3) level = 2
+      if (count >= 5) level = 3
+      if (count >= 7) level = 4
+
+      days.push({
+        date: dateStr,
+        count,
+        level,
+      })
+    }
+    return days
+  }, [taskHistory])
+
+  const totalContributions = useMemo(() => {
+    return taskHistory?.days.reduce((acc, day) => acc + day.completedCount, 0) ?? 0
+  }, [taskHistory])
 
   const quote = QUOTES[new Date().getDate() % QUOTES.length]
   const displayName = me?.profile?.displayName ?? me?.name?.split(' ')[0] ?? 'DEVELOPER'
@@ -139,41 +171,42 @@ export default function DashboardPage() {
         </div>
 
         {/* Year Commits */}
-         <div className="bg-black border border-primary/30 rounded-xl p-5 hover:border-primary/60 transition-all group flex flex-col">
-           <div className="text-primary/50 text-xs mb-2 flex items-center gap-2">
-            <GitBranch className="size-3" />
-            <span>YEAR_TOTAL</span>
-          </div>
-          {githubConnected && !githubStats ? (
-            <Skeleton className="h-10 w-24 bg-primary/10 mt-1" />
-          ) : (
-            <div className="text-4xl font-bold text-white mb-1">
-              {githubDetails ? githubDetails.contributionsThisYear.toLocaleString() : '—'}
+        <div className="bg-black border border-primary/30 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(0,255,65,0.05)] col-span-1 lg:col-span-2 flex flex-col min-h-[160px] relative">
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,65,0.03)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none"></div>
+          <div className="p-6 relative z-10 flex flex-col h-full">
+            <h3 className="font-bold text-primary mb-2 flex items-center gap-2 text-sm">
+              <Zap className="size-4" />
+              <span>TOTAL_TASKS</span>
+            </h3>
+            {taskHistoryLoading ? (
+              <Skeleton className="h-10 w-24 bg-primary/10 mb-1" />
+            ) : (
+              <div className="text-4xl font-bold text-white mb-1">
+                {totalContributions.toLocaleString()}
+              </div>
+            )}
+            <div className="text-primary/40 text-xs mt-auto pt-2 border-t border-primary/10">
+              COMPLETED IN LAST 365 DAYS
             </div>
-          )}
-          <div className="text-primary/40 text-xs mt-auto pt-2 border-t border-primary/10">
-            CONTRIBUTIONS
           </div>
         </div>
       </div>
 
       {/* Contribution heatmap */}
-      {githubDetails && (
-        <div className="bg-black border border-primary/30 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(0,255,65,0.05)]">
-           <div className="px-5 py-3 border-b border-primary/20 flex flex-row items-center justify-between bg-primary/5">
-             <h3 className="flex items-center gap-2 font-bold text-primary tracking-tight text-sm">
-                <GitBranch className="size-4" />
-                <span>[ CONTRIBUTION_MATRIX ]</span>
-             </h3>
-           </div>
-           <div className="p-6 overflow-x-auto relative [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-primary/5 [&::-webkit-scrollbar-thumb]:bg-primary/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-primary/40">
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,65,0.02)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none"></div>
-              <div className="relative z-10 min-w-max">
-                <ContributionHeatmap days={githubDetails.contributionCalendar} />
-              </div>
-           </div>
-        </div>
-      )}
+      <div className="bg-black border border-primary/30 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(0,255,65,0.05)]">
+         <div className="px-5 py-3 border-b border-primary/20 flex flex-row items-center justify-between bg-primary/5">
+           <h3 className="flex items-center gap-2 font-bold text-primary tracking-tight text-sm">
+              <GitBranch className="size-4" />
+              <span>[ CONTRIBUTION_MATRIX ]</span>
+           </h3>
+         </div>
+         <div className="p-6 overflow-x-auto relative [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-primary/5 [&::-webkit-scrollbar-thumb]:bg-primary/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-primary/40">
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,65,0.02)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none"></div>
+            <div className="relative z-10 min-w-max">
+              <ContributionHeatmap days={heatmapDays} />
+            </div>
+         </div>
+      </div>
 
       {/* Main Grid: Tasks, Quests, Achievements */}
       <div className="grid gap-6 lg:grid-cols-3">
