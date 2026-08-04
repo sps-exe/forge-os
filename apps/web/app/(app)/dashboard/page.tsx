@@ -166,9 +166,9 @@ export default function DashboardPage() {
                 <span>[ CONTRIBUTION_MATRIX ]</span>
              </h3>
            </div>
-           <div className="p-6 overflow-x-auto relative scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+           <div className="p-6 overflow-x-auto relative [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-primary/5 [&::-webkit-scrollbar-thumb]:bg-primary/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-primary/40">
               <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,65,0.02)_1px,transparent_1px)] bg-[size:100%_4px] pointer-events-none"></div>
-              <div className="relative z-10">
+              <div className="relative z-10 min-w-max">
                 <ContributionHeatmap days={githubDetails.contributionCalendar} />
               </div>
            </div>
