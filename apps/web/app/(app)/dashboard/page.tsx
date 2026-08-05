@@ -157,40 +157,40 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* GitHub Streak */}
+        {/* App Streak */}
         <div className="bg-black border border-primary/30 rounded-xl p-5 hover:border-primary/60 transition-all group flex flex-col">
            <div className="text-primary/50 text-xs mb-2 flex items-center gap-2">
-            <GitBranch className="size-3" />
-            <span>GH_STREAK</span>
+            <Zap className="size-3" />
+            <span>APP_STREAK</span>
           </div>
-          {githubConnected && !githubStats ? (
+          {taskHistoryLoading ? (
             <Skeleton className="h-10 w-16 bg-primary/10 mt-1" />
           ) : (
-            <div className="text-4xl font-bold text-white mb-1">{githubStats?.streak ?? '—'}</div>
+            <div className="text-4xl font-bold text-white mb-1">{currentStreak}</div>
           )}
           <div className="text-primary/40 text-xs mt-auto pt-2 border-t border-primary/10">
-            {githubConnected ? 'ACTIVE_DAYS' : 'DISCONNECTED'}
+            ACTIVE_DAYS
           </div>
         </div>
 
-        {/* Today's Commits */}
+        {/* Today's Tasks */}
         <div className="bg-black border border-primary/30 rounded-xl p-5 hover:border-primary/60 transition-all group flex flex-col relative overflow-hidden">
-          {githubDetails && githubDetails.contributionsToday > 0 && (
+          {todayTasks > 0 && (
              <div className="absolute top-0 right-0 w-16 h-16 bg-primary/10 blur-xl rounded-full translate-x-1/2 -translate-y-1/2"></div>
           )}
            <div className="text-primary/50 text-xs mb-2 flex items-center gap-2 relative z-10">
-            <GitBranch className="size-3" />
-            <span>TODAY_COMMITS</span>
+            <CheckCircle2 className="size-3" />
+            <span>TODAY_TASKS</span>
           </div>
-          {githubConnected && !githubStats ? (
+          {taskHistoryLoading ? (
             <Skeleton className="h-10 w-16 bg-primary/10 mt-1" />
           ) : (
-            <div className={`text-4xl font-bold mb-1 relative z-10 ${githubDetails && githubDetails.contributionsToday > 0 ? 'text-primary' : 'text-white'}`}>
-              {githubDetails ? githubDetails.contributionsToday : '—'}
+            <div className={`text-4xl font-bold mb-1 relative z-10 ${todayTasks > 0 ? 'text-primary' : 'text-white'}`}>
+              {todayTasks}
             </div>
           )}
           <div className="text-primary/40 text-xs mt-auto pt-2 border-t border-primary/10 relative z-10">
-            CONTRIBUTIONS
+            COMPLETED
           </div>
         </div>
 
