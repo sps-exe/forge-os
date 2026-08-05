@@ -140,7 +140,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Telemetry Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {/* Level */}
         <div className="bg-black border border-primary/30 rounded-xl p-5 hover:border-primary/60 transition-all group flex flex-col">
           <div className="text-primary/50 text-xs mb-2 flex items-center gap-2">
